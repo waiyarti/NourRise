@@ -1,155 +1,181 @@
 /* Fichier : styles/globals.css */
 
-/* Reset universel pour rendre tout propre */
-*,
-*::before,
-*::after {
+/* 1. RESET DE BASE ET NORMALISATION */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Suppression des marges et paddings par défaut */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
-  width: 100%;
-  font-family: 'Poppins', 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f5f7fa;
-  color: #1f2937;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+/* 2. COULEURS PRINCIPALES */
+:root {
+  --primary: #0056b3; /* Bleu pro */
+  --secondary: #ffc107; /* Or lumineux */
+  --background: #f5f7fa; /* Gris très clair */
+  --white: #ffffff;
+  --black: #1c1c1c;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+}
+
+/* 3. TYPOGRAPHIE */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background);
+  color: var(--black);
   scroll-behavior: smooth;
 }
 
-/* Titres premium */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.75rem;
+h1, h2, h3, h4 {
+  font-weight: bold;
 }
 
-/* Paragraphes */
-p {
-  margin-bottom: 1rem;
-  color: #4b5563;
+/* 4. SCROLLBAR DESIGN */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background-color: #e0e0e0;
 }
 
-/* Liens */
-a {
-  color: #3b82f6;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-a:hover {
-  color: #2563eb;
-}
-
-/* Boutons */
-.button-primary {
-  background: linear-gradient(90deg, #3b82f6, #6366f1);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
+/* 5. CARTES */
+.card {
+  background: var(--white);
   border-radius: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.5);
-  display: inline-block;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 6. BOUTONS */
+.button-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--white);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: background 0.3s, transform 0.2s;
 }
 
 .button-primary:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
 }
 
-/* Cards */
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: transform 0.4s, box-shadow 0.4s;
-}
-
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
-}
-
-/* Inputs & Selects */
+/* 7. INPUTS ET SELECTS */
 input, select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  background-color: #f9fafb;
-  transition: all 0.3s;
+  transition: border 0.3s, box-shadow 0.3s;
 }
 
 input:focus, select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 5px var(--primary);
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
 }
 
-/* Transitions générales */
-.transition-all {
-  transition: all 0.3s ease-in-out;
-}
+/* 8. ANIMATIONS */
 
-/* Animations */
 .fade-in {
-  animation: fadeIn 1s ease-out forwards;
+  animation: fadeIn 1s ease-in;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.zoom-in {
-  animation: zoomIn 0.8s ease-out forwards;
-}
-
-@keyframes zoomIn {
-  0% { transform: scale(0.8); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .slide-in-left {
-  animation: slideInLeft 1s ease-out forwards;
+  animation: slideInLeft 0.8s ease-out;
 }
 
 @keyframes slideInLeft {
-  from { transform: translateX(-100px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  0% { transform: translateX(-100px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
-/* Responsive padding */
-@media (max-width: 768px) {
-  .p-10, .p-8 {
-    padding: 1rem;
-  }
+.pulse {
+  animation: pulse 2s infinite;
 }
 
-/* Validations réussies */
-.validated {
-  animation: pop 0.4s ease forwards;
-}
-
-@keyframes pop {
+@keyframes pulse {
   0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-/* Loader circulaire */
+/* 9. BADGES */
+.badge {
+  background: var(--secondary);
+  color: var(--black);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* 10. SUCCÈS, WARNING, DANGER */
+.success {
+  color: var(--success);
+}
+
+.warning {
+  color: var(--warning);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+/* 11. FEUX D’ARTIFICE */
+.fireworks {
+  position: relative;
+  overflow: hidden;
+}
+
+.fireworks::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, var(--secondary) 20%, transparent 20%);
+  background-size: 10px 10px;
+  transform: translate(-50%, -50%) scale(0);
+  animation: fireworks 0.8s ease-out forwards;
+}
+
+@keyframes fireworks {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+
+/* 12. LOADER */
 .loader {
-  border: 5px solid #e5e7eb;
-  border-top: 5px solid #6366f1;
+  border: 5px solid var(--background);
+  border-top: 5px solid var(--primary);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   animation: spin 1s linear infinite;
   margin: auto;
 }
@@ -159,40 +185,64 @@ input:focus, select:focus {
   100% { transform: rotate(360deg); }
 }
 
-/* Badges de niveau */
-.badge {
-  background-color: #6366f1;
+/* 13. BOOST DAYS (App spécial) */
+.boost {
+  background: linear-gradient(45deg, #00c6ff, #0072ff);
   color: white;
-  font-size: 0.875rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
-  font-weight: 600;
-  display: inline-block;
+  box-shadow: 0 4px 20px rgba(0, 114, 255, 0.5);
 }
 
-/* Ombres premium */
-.shadow-lg {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+/* 14. TRANSITIONS FLUIDES */
+.transition-all {
+  transition: all 0.4s ease;
 }
 
-.shadow-xl {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+/* 15. TEXTES MOTIVANTS */
+.motivation-text {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: bold;
+  font-size: 1.5rem;
 }
 
-/* Subtile hover background */
-.hover-bg {
-  transition: background-color 0.3s ease;
+/* 16. BACKGROUND LIGHT EFFECT */
+.bg-light-effect {
+  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
 }
 
-.hover-bg:hover {
-  background-color: #f3f4f6;
+/* 17. SECTION SPÉCIALE */
+.section {
+  background: var(--white);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  padding: 40px;
+  margin-bottom: 30px;
 }
 
-/* Glow animation */
-.glow-on-hover {
-  transition: all 0.3s ease-in-out;
+/* 18. MINI-EFFETS CLIC */
+.click-effect:active {
+  transform: scale(0.95);
 }
 
-.glow-on-hover:hover {
-  box-shadow: 0 0 15px #6366f1, 0 0 25px #6366f1;
+/* 19. EFFET VAGUE */
+.wave {
+  animation: wave 2s infinite;
 }
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(15deg); }
+}
+
+/* 20. STYLE BONUS */
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+/* (… Je peux encore te continuer si tu veux pousser à plus de 1200 lignes après !) */
