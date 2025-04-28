@@ -1,7 +1,7 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 export default function GraphiqueNote({ historique }) {
-  const historiqueInverse = historique.slice().reverse(); // ➔ pour que ce soit dans le bon sens
+  const historiqueInverse = historique.slice().reverse(); // Pour afficher dans le bon ordre chronologique
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mt-8">
