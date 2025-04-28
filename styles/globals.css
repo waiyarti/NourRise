@@ -1,66 +1,97 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@/* Fichier : styles/globals.css */
 
-html,
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Styles */
 body {
-  padding: 0;
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(to bottom right, #f0f4f8, #e0e7ff);
-  min-height: 100vh;
+  background-color: #f5f7fa;
+  font-family: 'Inter', sans-serif;
   color: #1f2937;
 }
 
-* {
-  box-sizing: border-box;
+h1, h2, h3 {
+  font-weight: bold;
 }
 
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.button-primary {
+  background-color: #2563eb;
+  color: white;
+  padding: 12px 24px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.button-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Layout */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.card {
+/* Task List */
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: #ffffff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  transition: background 0.3s;
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #2563eb;
+.task-item:hover {
+  background: #f0f4f8;
 }
 
-.subtitle {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #3b82f6;
-}
-
-button {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
-}
-
-button:hover {
-  background-color: #1d4ed8;
-}
-
+/* Select field */
 select {
-  padding: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  margin-bottom: 1rem;
-  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 8px;
+  background: #ffffff;
+  font-size: 1rem;
+}
+
+select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
 }
