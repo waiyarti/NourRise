@@ -2,53 +2,36 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import TachesList from "../composants/TachesList";
 import Graphiques from "../composants/Graphiques";
-import AnalyseIA from "../composants/AnalyseIA";
-
-const tachesDeBase = [
-  { nom: "Coran", coef: 5 },
-  { nom: "Révision", coef: 4 },
-  { nom: "Mémorisation cheikh Houcine", coef: 4 },
-  { nom: "Cours religieux", coef: 4 },
-  { nom: "Étirement", coef: 2 },
-  { nom: "Mobilité", coef: 2 },
-  { nom: "Renforcement musculaire", coef: 2 },
-  { nom: "Respiration", coef: 1 },
-  { nom: "Sieste", coef: 1 },
-  { nom: "Marche", coef: 1 },
-  { nom: "Formation business", coef: 3 },
-  { nom: "Formation IA", coef: 4 },
-  { nom: "Formation religieuse", coef: 3 },
-  { nom: "Lecture", coef: 3 },
-  { nom: "Entraînement", coef: 3 },
-  { nom: "Dou‘a matin et soir", coef: 5 },
-  { nom: "Istighfar", coef: 5 },
-  { nom: "Tafsir", coef: 4 },
-  { nom: "Introspection", coef: 3 },
-  { nom: "Planification lendemain", coef: 3 },
-  { nom: "Vidéo motivation business", coef: 1 },
-  { nom: "Hydratation", coef: 2 },
-  { nom: "Geste de bonté", coef: 1 },
-  { nom: "Rappel à un proche", coef: 1 },
-  { nom: "Motivation religieuse", coef: 2 },
-  { nom: "Devoirs BUT GEA", coef: 4 },
-  { nom: "Anglais", coef: 3 },
-  { nom: "Formation sujet intelligent", coef: 3 }
-];
+import MotivationQuote from "../composants/MotivationQuote";
+import Confetti from "../composants/Confetti";
 
 export default function Home() {
-  const [taches, setTaches] = useState(tachesDeBase.map((t) => ({ ...t, etat: "" })));
+  const [taches, setTaches] = useState([]);
   const [historique, setHistorique] = useState([]);
+  const [confettiVisible, setConfettiVisible] = useState(false);
 
   useEffect(() => {
-    const data = localStorage.getItem("historiqueNourRise");
-    if (data) {
-      setHistorique(JSON.parse(data));
+    const tachesSauvegarde = localStorage.getItem("tachesNourRise");
+    const historiqueSauvegarde = localStorage.getItem("historiqueNourRise");
+    if (tachesSauvegarde) {
+      setTaches(JSON.parse(tachesSauvegarde));
+    } else {
+      // Valeurs par défaut si rien n'est enregistré
+      setTaches([
+        { nom: "Coran", coef: 5, etat: "" },
+        { nom: "Révision", coef: 4, etat: "" },
+        { nom: "Entraînement", coef: 3, etat: "" },
+      ]);
+    }
+    if (historiqueSauvegarde) {
+      setHistorique(JSON.parse(historiqueSauvegarde));
     }
   }, []);
 
   useEffect(() => {
+    localStorage.setItem("tachesNourRise", JSON.stringify(taches));
     localStorage.setItem("historiqueNourRise", JSON.stringify(historique));
-  }, [historique]);
+  }, [taches, historique]);
 
   const calculerTaux = () => {
     const totalPossible = taches.reduce((acc, t) => acc + t.coef, 0);
@@ -57,7 +40,7 @@ export default function Home() {
       if (t.etat === "En cours") return acc + t.coef * 0.5;
       return acc;
     }, 0);
-    return Math.round((totalReussi / totalPossible) * 100);
+    return totalPossible ? Math.round((totalReussi / totalPossible) * 100) : 0;
   };
 
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
@@ -68,37 +51,99 @@ export default function Home() {
     const nouvelleJournee = {
       date: format(new Date(), "dd/MM/yyyy"),
       tauxReussite: taux,
-      note
+      note,
     };
     setHistorique([nouvelleJournee, ...historique]);
-    setTaches(tachesDeBase.map((t) => ({ ...t, etat: "" })));
+    setTaches(taches.map((t) => ({ ...t, etat: "" })));
+    lancerConfetti();
+    jouerSonValidation();
+  };
+
+  const supprimerJournee = (index) => {
+    const nouveauHistorique = [...historique];
+    nouveauHistorique.splice(index, 1);
+    setHistorique(nouveauHistorique);
+  };
+
+  const ajouterTache = (nom, coef) => {
+    if (nom.trim() === "" || coef <= 0) return;
+    setTaches([...taches, { nom, coef, etat: "" }]);
+  };
+
+  const supprimerTache = (index) => {
+    const nouvellesTaches = [...taches];
+    nouvellesTaches.splice(index, 1);
+    setTaches(nouvellesTaches);
+  };
+
+  const lancerConfetti = () => {
+    setConfettiVisible(true);
+    setTimeout(() => setConfettiVisible(false), 3000);
+  };
+
+  const jouerSonValidation = () => {
+    const audio = new Audio("/success.mp3");
+    audio.volume = 0.2;
+    audio.play();
   };
 
   return (
-    <div className="p-10 max-w-7xl mx-auto bg-gray-50 min-h-screen rounded-lg shadow-md">
-      <h1 className="text-4xl font-bold mb-8 text-center text-blue-700 tracking-wide">🚀 NourRise Premium</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-300 p-6">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-blue-800 mb-6 animate-fade-in-up">🚀 NourRise Premium</h1>
 
-      <div className="p-6 mb-8 bg-white rounded-lg shadow-sm border border-blue-300">
-        <h2 className="text-2xl font-semibold mb-2 text-blue-600 text-center">Résumé du jour</h2>
-        <p className="text-center text-lg">🎯 % de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span></p>
-        <p className="text-center text-lg">⭐ Note sur 20 : <span className="font-bold">{historique[0]?.note || 0}/20</span></p>
+        <MotivationQuote />
+
+        <div className="flex flex-col md:flex-row gap-8 mt-8">
+          <div className="w-full md:w-1/2">
+            <TachesList
+              taches={taches}
+              setTaches={setTaches}
+              ajouterTache={ajouterTache}
+              supprimerTache={supprimerTache}
+            />
+          </div>
+
+          <div className="w-full md:w-1/2">
+            <Graphiques historique={historique} />
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col items-center">
+          <button
+            onClick={ajouterJournee}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
+          >
+            ✅ Valider ma journée
+          </button>
+
+          <div className="mt-8 w-full">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-700">📅 Historique</h2>
+            {historique.length === 0 ? (
+              <p className="text-gray-500">Aucun jour validé encore.</p>
+            ) : (
+              historique.map((jour, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center bg-white p-4 rounded-lg mb-4 shadow hover:shadow-md transition"
+                >
+                  <div>
+                    {jour.date} – {jour.tauxReussite}% – {jour.note}/20
+                  </div>
+                  <button
+                    onClick={() => supprimerJournee(index)}
+                    className="text-red-500 hover:text-red-700 font-semibold"
+                  >
+                    🗑️ Supprimer
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {confettiVisible && <Confetti />}
       </div>
-
-      <TachesList taches={taches} setTaches={setTaches} />
-      
-      <button
-        onClick={ajouterJournee}
-        className="mt-10 w-full p-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-lg font-semibold"
-      >
-        ✅ Valider ma journée
-      </button>
-
-      {historique.length > 0 && (
-        <>
-          <Graphiques historique={historique} />
-          <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
-        </>
-      )}
     </div>
   );
 }
