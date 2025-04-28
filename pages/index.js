@@ -81,25 +81,26 @@ export default function Home() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto fade-in">
-      <h1 className="text-3xl font-extrabold mb-6 text-blue-600">🚀 NourRise Premium</h1>
+    <div className="p-10 max-w-7xl mx-auto bg-gray-50 min-h-screen rounded-lg shadow-md">
+      <h1 className="text-4xl font-bold mb-8 text-center text-blue-700 tracking-wide">🚀 NourRise Premium</h1>
 
-      <div className="card p-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 mb-6">
-        <h2 className="text-2xl font-bold">
-          % de réussite aujourd'hui : {historique[0]?.tauxReussite || 0}%
-        </h2>
-        <h3 className="text-xl mt-2">
-          Note sur 20 : {historique[0]?.note || 0}/20
-        </h3>
+      <div className="p-6 mb-8 bg-white rounded-lg shadow-sm border border-blue-300">
+        <h2 className="text-2xl font-semibold mb-2 text-blue-600 text-center">Résumé du jour</h2>
+        <p className="text-center text-lg">
+          🎯 % de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span>
+        </p>
+        <p className="text-center text-lg">
+          ⭐ Note sur 20 : <span className="font-bold">{historique[0]?.note || 0}/20</span>
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
           {taches.map((tache, index) => (
-            <div key={index} className="flex justify-between items-center card border-b pb-2 hover:bg-gray-100 transition-all duration-300">
-              <span>{tache.nom}</span>
+            <div key={index} className="flex justify-between items-center bg-white p-4 rounded shadow hover:bg-blue-50 transition">
+              <span className="font-medium">{tache.nom}</span>
               <select
-                className="border rounded p-2"
+                className="border border-gray-300 rounded p-2"
                 value={tache.etat}
                 onChange={(e) => {
                   const updated = [...taches];
@@ -116,7 +117,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div>
+        <div className="space-y-8">
           {historique.length > 0 && (
             <>
               <GraphiqueEvolution historique={historique} />
@@ -128,21 +129,21 @@ export default function Home() {
 
       <button
         onClick={ajouterJournee}
-        className="button-primary mt-8 w-full"
+        className="mt-10 w-full p-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-lg font-semibold"
       >
-        Valider ma journée 🚀
+        ✅ Valider ma journée
       </button>
 
-      <div className="card p-6 mt-10">
-        <h2 className="text-xl font-semibold mb-4">📅 Historique</h2>
+      <div className="mt-14">
+        <h2 className="text-2xl font-semibold mb-6 text-gray-700">📅 Historique des journées</h2>
         {historique.map((jour, index) => (
-          <div key={index} className="flex justify-between items-center card p-3 mb-2 bg-gray-50 hover:shadow-lg transition-all duration-300">
+          <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg mb-4 shadow hover:shadow-md transition">
             <div>
-              {jour.date} - {jour.tauxReussite}% - {jour.note}/20
+              {jour.date} – {jour.tauxReussite}% – {jour.note}/20
             </div>
             <button
               onClick={() => supprimerJournee(index)}
-              className="text-red-600 hover:underline ml-4"
+              className="text-red-500 hover:text-red-700 font-semibold"
             >
               🗑️ Supprimer
             </button>
@@ -151,10 +152,9 @@ export default function Home() {
       </div>
 
       {historique.length > 0 && (
-        <AnalyseIA
-          tauxReussite={historique[0].tauxReussite}
-          note={historique[0].note}
-        />
+        <div className="mt-12">
+          <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
+        </div>
       )}
     </div>
   );
