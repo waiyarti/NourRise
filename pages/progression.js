@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import GraphiqueEvolution from "../../components/GraphiqueEvolution";
+import GraphiqueEvolution from "../components/GraphiqueEvolution";
 
 export default function ProgressionPage() {
   const [historique, setHistorique] = useState([]);
