@@ -18,9 +18,7 @@ export default function ProgressionPage() {
       {historique.length > 0 ? (
         <>
           <GraphiqueEvolution historique={historique} />
-          <div className="mt-12">
-            <GraphiqueNote historique={historique} />
-          </div>
+          <GraphiqueNote historique={historique} />
         </>
       ) : (
         <p className="text-gray-500">Aucune donnée pour générer un graphique. Valide une journée pour commencer.</p>
