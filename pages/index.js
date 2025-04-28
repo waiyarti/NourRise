@@ -81,10 +81,10 @@ export default function Home() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-extrabold mb-6 text-blue-700">🚀 NourRise Premium</h1>
+    <div className="p-8 max-w-6xl mx-auto fade-in">
+      <h1 className="text-3xl font-extrabold mb-6 text-blue-600">🚀 NourRise Premium</h1>
 
-      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
+      <div className="card p-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 mb-6">
         <h2 className="text-2xl font-bold">
           % de réussite aujourd'hui : {historique[0]?.tauxReussite || 0}%
         </h2>
@@ -96,7 +96,7 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           {taches.map((tache, index) => (
-            <div key={index} className="flex justify-between items-center border-b pb-2">
+            <div key={index} className="flex justify-between items-center card border-b pb-2 hover:bg-gray-100 transition-all duration-300">
               <span>{tache.nom}</span>
               <select
                 className="border rounded p-2"
@@ -128,15 +128,15 @@ export default function Home() {
 
       <button
         onClick={ajouterJournee}
-        className="mt-8 p-3 bg-blue-600 text-white rounded hover:bg-blue-700 w-full"
+        className="button-primary mt-8 w-full"
       >
         Valider ma journée 🚀
       </button>
 
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-2">📅 Historique</h2>
+      <div className="card p-6 mt-10">
+        <h2 className="text-xl font-semibold mb-4">📅 Historique</h2>
         {historique.map((jour, index) => (
-          <div key={index} className="flex justify-between items-center border p-3 mb-2 rounded bg-gray-100">
+          <div key={index} className="flex justify-between items-center card p-3 mb-2 bg-gray-50 hover:shadow-lg transition-all duration-300">
             <div>
               {jour.date} - {jour.tauxReussite}% - {jour.note}/20
             </div>
