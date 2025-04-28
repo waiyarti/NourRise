@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import AnalyseIA from "../components/AnalyseIA";
+import AnalyseIA from "../composants/AnalyseIA";
 
-export default function Analyse() {
+export default function AnalysePage() {
   const [historique, setHistorique] = useState([]);
 
   useEffect(() => {
@@ -12,12 +12,15 @@ export default function Analyse() {
   }, []);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-green-600">🤖 Analyse IA Complète</h1>
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-extrabold mb-6 text-purple-700">🧠 Analyse IA Personnalisée</h1>
       {historique.length > 0 ? (
-        <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
+        <AnalyseIA
+          tauxReussite={historique[0].tauxReussite}
+          note={historique[0].note}
+        />
       ) : (
-        <p className="text-center text-gray-500">Pas assez de données pour analyser.</p>
+        <p className="text-gray-500">Aucune donnée analysable pour l’instant. Valide une journée pour lancer ton analyse IA.</p>
       )}
     </div>
   );
