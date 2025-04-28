@@ -1,43 +1,66 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import AnalyseIA from "../composants/AnalyseIA";
-import Graphiques from "../composants/Graphiques";
-import TachesList from "../composants/TachesList";
+import GraphiqueEvolution from "../composants/GraphiqueEvolution";
+import GraphiqueNote from "../composants/GraphiqueNote";
 
-const tachesJournalieresInit = [
+const tachesJournalieresInitiales = [
   { nom: "Coran", coef: 5 },
   { nom: "Révision", coef: 4 },
-  { nom: "Entraînement physique", coef: 3 },
-  { nom: "Lecture bénéfique", coef: 3 },
-  { nom: "Dou‘a matin et soir", coef: 5 },
+  { nom: "Mémorisation cheikh Houcine", coef: 4 },
+  { nom: "Cours religieux", coef: 4 },
+  { nom: "Étirement", coef: 2 },
+  { nom: "Mobilité", coef: 2 },
+  { nom: "Renforcement musculaire", coef: 2 },
+  { nom: "Respiration", coef: 1 },
+  { nom: "Sieste", coef: 1 },
+  { nom: "Marche", coef: 1 },
+  { nom: "Formation business", coef: 3 },
   { nom: "Formation IA", coef: 4 },
-  { nom: "Tafsir du Coran", coef: 4 },
-  { nom: "Business/Projets", coef: 3 }
+  { nom: "Formation religieux", coef: 3 },
+  { nom: "Lecture", coef: 3 },
+  { nom: "Entraînement", coef: 3 },
+  { nom: "Dou‘a matin et soir", coef: 5 },
+  { nom: "Istighfar", coef: 5 },
+  { nom: "Tafsir", coef: 4 },
+  { nom: "Introspection", coef: 3 },
+  { nom: "Planification lendemain", coef: 3 },
+  { nom: "Vidéo motivation business", coef: 1 },
+  { nom: "Hydratation", coef: 2 },
+  { nom: "Geste de bonté", coef: 1 },
+  { nom: "Rappel à un proche", coef: 1 },
+  { nom: "Motivation religieuse", coef: 2 },
+  { nom: "Devoirs BUT GEA", coef: 4 },
+  { nom: "Anglais", coef: 3 },
+  { nom: "Formation sujet intelligent", coef: 3 }
 ];
 
 export default function Home() {
   const [taches, setTaches] = useState([]);
   const [historique, setHistorique] = useState([]);
-  const [niveau, setNiveau] = useState(1);
-  const [experience, setExperience] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const data = localStorage.getItem("nourriseData");
-    if (data) {
-      const { taches, historique, niveau, experience } = JSON.parse(data);
-      setTaches(taches);
-      setHistorique(historique);
-      setNiveau(niveau);
-      setExperience(experience);
+    const historiqueSauvegarde = localStorage.getItem("historiqueNourRise");
+    if (historiqueSauvegarde) {
+      setHistorique(JSON.parse(historiqueSauvegarde));
+    }
+
+    const tachesSauvegarde = localStorage.getItem("tachesNourRise");
+    if (tachesSauvegarde) {
+      setTaches(JSON.parse(tachesSauvegarde));
     } else {
-      setTaches(tachesJournalieresInit.map(t => ({ ...t, etat: "" })));
+      setTaches(tachesJournalieresInitiales);
     }
   }, []);
 
   useEffect(() => {
-    const data = { taches, historique, niveau, experience };
-    localStorage.setItem("nourriseData", JSON.stringify(data));
-  }, [taches, historique, niveau, experience]);
+    localStorage.setItem("historiqueNourRise", JSON.stringify(historique));
+  }, [historique]);
+
+  useEffect(() => {
+    localStorage.setItem("tachesNourRise", JSON.stringify(taches));
+  }, [taches]);
 
   const calculerTaux = () => {
     const totalPossible = taches.reduce((acc, t) => acc + t.coef, 0);
@@ -52,27 +75,19 @@ export default function Home() {
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
 
   const ajouterJournee = () => {
-    const taux = calculerTaux();
-    const note = calculerNote(taux);
-    const nouvelleJournee = {
-      date: format(new Date(), "dd/MM/yyyy"),
-      tauxReussite: taux,
-      note
-    };
-    setHistorique([nouvelleJournee, ...historique]);
-    setTaches(taches.map(t => ({ ...t, etat: "" })));
-    gagnerExperience(100);
-  };
-
-  const gagnerExperience = (xp) => {
-    let total = experience + xp;
-    let newNiveau = niveau;
-    while (total >= 500) {
-      total -= 500;
-      newNiveau += 1;
-    }
-    setExperience(total);
-    setNiveau(newNiveau);
+    setIsLoading(true);
+    setTimeout(() => {
+      const taux = calculerTaux();
+      const note = calculerNote(taux);
+      const nouvelleJournee = {
+        date: format(new Date(), "dd/MM/yyyy"),
+        tauxReussite: taux,
+        note
+      };
+      setHistorique([nouvelleJournee, ...historique]);
+      setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
+      setIsLoading(false);
+    }, 2000); // 2 secondes de "suspens"
   };
 
   const supprimerJournee = (index) => {
@@ -82,50 +97,81 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto fade-in">
-      <h1 className="text-4xl font-bold text-center mb-6 text-gradient">🚀 NourRise Premium</h1>
+    <div className="p-8 max-w-7xl mx-auto bg-gradient-to-tr from-blue-50 to-white min-h-screen rounded-lg shadow-xl fade-in">
+      <h1 className="text-4xl font-bold mb-10 text-center text-blue-700 tracking-wide animate-pulse">🚀 NourRise Premium</h1>
 
-      <div className="stats-container mb-10">
-        <div className="stat-card">
-          <h2>🎯 Taux de réussite</h2>
-          <p className="text-xl font-bold">{historique[0]?.tauxReussite || 0}%</p>
+      <div className="p-6 mb-8 bg-white rounded-lg shadow-md border border-blue-300 slide-in">
+        <h2 className="text-2xl font-semibold mb-4 text-center text-blue-600">Résumé du jour</h2>
+        <p className="text-center text-lg">
+          🎯 Taux de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span>
+        </p>
+        <p className="text-center text-lg">
+          ⭐ Note : <span className="font-bold">{historique[0]?.note || 0}/20</span>
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="space-y-6">
+          {taches.map((tache, index) => (
+            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow hover:bg-blue-50 transition">
+              <span className="font-semibold">{tache.nom}</span>
+              <select
+                className="border border-gray-300 rounded p-2"
+                value={tache.etat || ""}
+                onChange={(e) => {
+                  const updated = [...taches];
+                  updated[index].etat = e.target.value;
+                  setTaches(updated);
+                }}
+              >
+                <option value="">Choisir</option>
+                <option value="Terminé">Fait</option>
+                <option value="En cours">En cours</option>
+                <option value="Non fait">Pas fait</option>
+              </select>
+            </div>
+          ))}
         </div>
-        <div className="stat-card">
-          <h2>⭐ Note</h2>
-          <p className="text-xl font-bold">{historique[0]?.note || 0}/20</p>
-        </div>
-        <div className="stat-card">
-          <h2>🧠 Niveau</h2>
-          <p className="text-xl font-bold">{niveau}</p>
-        </div>
-        <div className="stat-card">
-          <h2>🔥 Expérience</h2>
-          <p className="text-xl font-bold">{experience}/500 XP</p>
+
+        <div className="space-y-8">
+          {historique.length > 0 && (
+            <>
+              <GraphiqueEvolution historique={historique} />
+              <GraphiqueNote historique={historique} />
+            </>
+          )}
         </div>
       </div>
 
-      <TachesList taches={taches} setTaches={setTaches} />
-
-      <button onClick={ajouterJournee} className="btn-primary mt-8">
-        ✅ Valider ma journée
+      <button
+        onClick={ajouterJournee}
+        className="mt-12 w-full p-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition text-xl font-bold tracking-wide"
+      >
+        {isLoading ? "Validation en cours..." : "✅ Valider ma journée"}
       </button>
 
-      {historique.length > 0 && (
-        <>
-          <Graphiques historique={historique} />
-          <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
-        </>
-      )}
-
-      <div className="mt-14">
-        <h2 className="text-2xl font-semibold mb-4">📅 Historique des Journées</h2>
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6 text-gray-700">📅 Historique</h2>
         {historique.map((jour, index) => (
-          <div key={index} className="history-card">
-            {jour.date} — {jour.tauxReussite}% — {jour.note}/20
-            <button onClick={() => supprimerJournee(index)} className="delete-btn">Supprimer</button>
+          <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow mb-4 hover:shadow-lg transition-all">
+            <div>
+              {jour.date} – {jour.tauxReussite}% – {jour.note}/20
+            </div>
+            <button
+              onClick={() => supprimerJournee(index)}
+              className="text-red-500 hover:text-red-700 font-bold"
+            >
+              🗑️ Supprimer
+            </button>
           </div>
         ))}
       </div>
+
+      {historique.length > 0 && (
+        <div className="mt-12">
+          <AnalyseIA tauxReussite={historique[0]?.tauxReussite} note={historique[0]?.note} />
+        </div>
+      )}
     </div>
   );
 }
