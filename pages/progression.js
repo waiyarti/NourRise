@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import AnalyseIA from "../../components/AnalyseIA";
+import GraphiqueEvolution from "../../components/GraphiqueEvolution";
 
-export default function AnalysePage() {
+export default function ProgressionPage() {
   const [historique, setHistorique] = useState([]);
 
   useEffect(() => {
@@ -11,16 +11,13 @@ export default function AnalysePage() {
     }
   }, []);
 
-  const tauxReussite = historique[0]?.tauxReussite || 0;
-  const note = historique[0]?.note || 0;
-
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-extrabold mb-6 text-green-700">🧠 Analyse de ta progression</h1>
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-extrabold mb-6 text-blue-700">📈 Suivi de ta progression</h1>
       {historique.length > 0 ? (
-        <AnalyseIA tauxReussite={tauxReussite} note={note} />
+        <GraphiqueEvolution historique={historique} />
       ) : (
-        <p className="text-gray-500">Aucune donnée disponible pour aujourd'hui. Valide une journée pour voir l'analyse.</p>
+        <p className="text-gray-500">Aucune donnée pour générer un graphique. Valide une journée pour commencer.</p>
       )}
     </div>
   );
