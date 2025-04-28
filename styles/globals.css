@@ -1,45 +1,43 @@
-/* styles/globals.css */
-
-/* Tailwind imports */
+/* Fichier : styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Animations personnalisées */
 .fade-in {
-  animation: fadeIn 1.5s ease-in forwards;
+  animation: fadeIn 1s ease-in forwards;
 }
-
-.slide-in-bottom {
-  animation: slideInBottom 1s ease-out forwards;
-}
-
-/* Keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
+.slide-in-bottom {
+  animation: slideInBottom 1s ease-out forwards;
+}
 @keyframes slideInBottom {
-  from { transform: translateY(50px); opacity: 0; }
+  from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Styles globaux personnalisés */
-body {
-  background: linear-gradient(to right, #f8fafc, #e0f2fe);
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+/* Loader cercle */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.card {
-  @apply p-6 bg-white rounded-lg shadow hover:shadow-xl transition duration-300;
-}
-
-.button-primary {
-  @apply bg-blue-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition-all duration-300;
-}
-
-.select-style {
-  @apply border-gray-300 border rounded p-2 hover:border-blue-400 focus:border-blue-600 transition duration-200;
+/* Barre de progression */
+.progress-bar {
+  background: linear-gradient(to right, #4ade80, #22c55e);
+  height: 8px;
+  border-radius: 10px;
 }
