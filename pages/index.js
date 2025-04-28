@@ -38,29 +38,26 @@ const tachesJournalieresInitiales = [
 export default function Home() {
   const [taches, setTaches] = useState([]);
   const [historique, setHistorique] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const historiqueSauvegarde = localStorage.getItem("historiqueNourRise");
-    if (historiqueSauvegarde) {
-      setHistorique(JSON.parse(historiqueSauvegarde));
+    const sauvegardeTaches = localStorage.getItem("tachesNourRise");
+    const sauvegardeHistorique = localStorage.getItem("historiqueNourRise");
+
+    if (sauvegardeTaches) {
+      setTaches(JSON.parse(sauvegardeTaches));
+    } else {
+      setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
     }
 
-    const tachesSauvegarde = localStorage.getItem("tachesNourRise");
-    if (tachesSauvegarde) {
-      setTaches(JSON.parse(tachesSauvegarde));
-    } else {
-      setTaches(tachesJournalieresInitiales);
+    if (sauvegardeHistorique) {
+      setHistorique(JSON.parse(sauvegardeHistorique));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("historiqueNourRise", JSON.stringify(historique));
-  }, [historique]);
-
-  useEffect(() => {
     localStorage.setItem("tachesNourRise", JSON.stringify(taches));
-  }, [taches]);
+    localStorage.setItem("historiqueNourRise", JSON.stringify(historique));
+  }, [taches, historique]);
 
   const calculerTaux = () => {
     const totalPossible = taches.reduce((acc, t) => acc + t.coef, 0);
@@ -75,19 +72,15 @@ export default function Home() {
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
 
   const ajouterJournee = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const taux = calculerTaux();
-      const note = calculerNote(taux);
-      const nouvelleJournee = {
-        date: format(new Date(), "dd/MM/yyyy"),
-        tauxReussite: taux,
-        note
-      };
-      setHistorique([nouvelleJournee, ...historique]);
-      setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
-      setIsLoading(false);
-    }, 2000); // 2 secondes de "suspens"
+    const taux = calculerTaux();
+    const note = calculerNote(taux);
+    const nouvelleJournee = {
+      date: format(new Date(), "dd/MM/yyyy"),
+      tauxReussite: taux,
+      note
+    };
+    setHistorique([nouvelleJournee, ...historique]);
+    setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
   };
 
   const supprimerJournee = (index) => {
@@ -96,28 +89,55 @@ export default function Home() {
     setHistorique(nouveauHistorique);
   };
 
-  return (
-    <div className="p-8 max-w-7xl mx-auto bg-gradient-to-tr from-blue-50 to-white min-h-screen rounded-lg shadow-xl fade-in">
-      <h1 className="text-4xl font-bold mb-10 text-center text-blue-700 tracking-wide animate-pulse">🚀 NourRise Premium</h1>
+  const ajouterTache = () => {
+    const nom = prompt("Entre le nom de la nouvelle tâche :");
+    const coef = parseInt(prompt("Entre son coefficient (1 à 5) :"), 10);
 
-      <div className="p-6 mb-8 bg-white rounded-lg shadow-md border border-blue-300 slide-in">
-        <h2 className="text-2xl font-semibold mb-4 text-center text-blue-600">Résumé du jour</h2>
+    if (nom && coef && coef > 0 && coef <= 5) {
+      const nouvelleTache = { nom, coef, etat: "" };
+      setTaches([...taches, nouvelleTache]);
+    }
+  };
+
+  const supprimerTache = (index) => {
+    if (confirm("Es-tu sûr de vouloir supprimer cette tâche ?")) {
+      const nouvellesTaches = [...taches];
+      nouvellesTaches.splice(index, 1);
+      setTaches(nouvellesTaches);
+    }
+  };
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen rounded-lg shadow-xl animate-fadeIn">
+      <h1 className="text-4xl font-extrabold mb-8 text-center text-blue-700 tracking-wide">🚀 NourRise - Global View</h1>
+
+      <div className="p-6 mb-8 bg-white rounded-xl shadow-md border border-blue-300">
+        <h2 className="text-2xl font-bold mb-4 text-blue-600 text-center">🌟 Résumé de ta Journée</h2>
         <p className="text-center text-lg">
-          🎯 Taux de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span>
+          Taux de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span>
         </p>
         <p className="text-center text-lg">
-          ⭐ Note : <span className="font-bold">{historique[0]?.note || 0}/20</span>
+          Note sur 20 : <span className="font-bold">{historique[0]?.note || 0}/20</span>
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="flex justify-between mb-6">
+        <button onClick={ajouterTache} className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition">
+          ➕ Ajouter une tâche
+        </button>
+        <button onClick={ajouterJournee} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition">
+          ✅ Valider la journée
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           {taches.map((tache, index) => (
-            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow hover:bg-blue-50 transition">
-              <span className="font-semibold">{tache.nom}</span>
+            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+              <span className="font-medium">{tache.nom}</span>
               <select
-                className="border border-gray-300 rounded p-2"
-                value={tache.etat || ""}
+                className="border rounded p-2"
+                value={tache.etat}
                 onChange={(e) => {
                   const updated = [...taches];
                   updated[index].etat = e.target.value;
@@ -127,8 +147,14 @@ export default function Home() {
                 <option value="">Choisir</option>
                 <option value="Terminé">Fait</option>
                 <option value="En cours">En cours</option>
-                <option value="Non fait">Pas fait</option>
+                <option value="Non fait">Non fait</option>
               </select>
+              <button
+                onClick={() => supprimerTache(index)}
+                className="ml-4 text-red-500 hover:text-red-700 font-semibold"
+              >
+                ✖️
+              </button>
             </div>
           ))}
         </div>
@@ -143,23 +169,16 @@ export default function Home() {
         </div>
       </div>
 
-      <button
-        onClick={ajouterJournee}
-        className="mt-12 w-full p-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition text-xl font-bold tracking-wide"
-      >
-        {isLoading ? "Validation en cours..." : "✅ Valider ma journée"}
-      </button>
-
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-6 text-gray-700">📅 Historique</h2>
+      <div className="mt-10">
+        <h2 className="text-2xl font-semibold mb-4">📅 Historique</h2>
         {historique.map((jour, index) => (
-          <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow mb-4 hover:shadow-lg transition-all">
+          <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg mb-4 shadow hover:shadow-md transition">
             <div>
               {jour.date} – {jour.tauxReussite}% – {jour.note}/20
             </div>
             <button
               onClick={() => supprimerJournee(index)}
-              className="text-red-500 hover:text-red-700 font-bold"
+              className="text-red-500 hover:underline ml-4"
             >
               🗑️ Supprimer
             </button>
@@ -168,8 +187,8 @@ export default function Home() {
       </div>
 
       {historique.length > 0 && (
-        <div className="mt-12">
-          <AnalyseIA tauxReussite={historique[0]?.tauxReussite} note={historique[0]?.note} />
+        <div className="mt-10">
+          <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
         </div>
       )}
     </div>
