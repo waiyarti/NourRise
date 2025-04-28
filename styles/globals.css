@@ -1,43 +1,80 @@
 /* Fichier : styles/globals.css */
+
+/* Import Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Animations personnalisées */
+/* --- Styles personnalisés NourRise --- */
+
+/* Body général */
+body {
+  @apply bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen text-gray-800 font-sans;
+}
+
+/* Cartes */
+.card {
+  @apply bg-white shadow-md rounded-lg p-6 mb-6 transition-transform transform hover:scale-105;
+}
+
+/* Bouton principal */
+.button-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition;
+}
+
+/* Fade-in animation */
 .fade-in {
-  animation: fadeIn 1s ease-in forwards;
+  animation: fadeIn 1.5s ease-out;
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-.slide-in-bottom {
-  animation: slideInBottom 1s ease-out forwards;
-}
-@keyframes slideInBottom {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* Barre de progression */
+.progress-bar {
+  @apply h-2 rounded bg-green-400;
 }
 
-/* Loader cercle */
+/* Loader */
 .loader {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border-top: 4px solid #3490dc;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   animation: spin 1s linear infinite;
   margin: auto;
 }
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Barre de progression */
-.progress-bar {
-  background: linear-gradient(to right, #4ade80, #22c55e);
-  height: 8px;
-  border-radius: 10px;
+/* Cards historiques */
+.historique-card {
+  @apply flex justify-between items-center bg-white p-4 rounded-lg mb-4 shadow hover:shadow-lg transition;
+}
+
+/* Styles des titres */
+.title-main {
+  @apply text-4xl font-extrabold mb-6 text-center text-blue-700;
+}
+
+.title-section {
+  @apply text-2xl font-bold mb-4 text-blue-600;
+}
+
+/* Input Select */
+.select-tache {
+  @apply border border-gray-300 rounded p-2 shadow-sm hover:border-blue-500 transition;
+}
+
+/* Background Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
