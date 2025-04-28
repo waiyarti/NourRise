@@ -1,19 +1,29 @@
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function GraphiqueNote({ historique }) {
-  const historiqueInverse = historique.slice().reverse(); // Pour afficher dans le bon ordre chronologique
+  if (!historique || historique.length === 0) return null;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-      <h2 className="text-xl font-bold mb-4">✏️ Évolution de la note sur 20</h2>
+    <div className="bg-white p-4 rounded-lg shadow-md mt-6">
+      <h2 className="text-lg font-bold mb-4 text-yellow-600">Évolution de la Note /20</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={historiqueInverse} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <LineChart
+          data={historique.slice().reverse()}
+          margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis domain={[0, 20]} />
           <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="note" stroke="#f97316" strokeWidth={3} />
+          <Line type="monotone" dataKey="note" stroke="#facc15" strokeWidth={2} />
         </LineChart>
       </ResponsiveContainer>
     </div>
