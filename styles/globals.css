@@ -1,6 +1,6 @@
 /* Fichier : styles/globals.css */
 
-/* Reset de base pour uniformiser l'affichage */
+/* Reset universel pour rendre tout propre */
 *,
 *::before,
 *::after {
@@ -9,109 +9,130 @@
   box-sizing: border-box;
 }
 
-/* Configuration générale */
 html, body {
-  width: 100%;
   height: 100%;
-  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f9fafb;
-  color: #333;
+  width: 100%;
+  font-family: 'Poppins', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f7fa;
+  color: #1f2937;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
 }
 
-/* Titres */
+/* Titres premium */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
-  color: #1f2937;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+/* Paragraphes */
+p {
+  margin-bottom: 1rem;
+  color: #4b5563;
 }
 
 /* Liens */
 a {
-  color: inherit;
+  color: #3b82f6;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
-/* Boutons généraux */
+a:hover {
+  color: #2563eb;
+}
+
+/* Boutons */
 .button-primary {
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
   color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
   font-weight: 600;
-  transition: transform 0.3s, box-shadow 0.3s;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.5);
+  display: inline-block;
 }
 
 .button-primary:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
 }
 
-/* Cartes */
+/* Cards */
 .card {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-  transition: transform 0.3s, box-shadow 0.3s;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s, box-shadow 0.4s;
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Inputs & Selects */
+input, select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background-color: #f9fafb;
+  transition: all 0.3s;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+}
+
+/* Transitions générales */
+.transition-all {
+  transition: all 0.3s ease-in-out;
 }
 
 /* Animations */
 .fade-in {
-  animation: fadeIn 1s ease forwards;
+  animation: fadeIn 1s ease-out forwards;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.slide-in {
-  animation: slideIn 1s ease forwards;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 .zoom-in {
-  animation: zoomIn 0.8s ease forwards;
+  animation: zoomIn 0.8s ease-out forwards;
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-/* Input / Selects stylisés */
-input, select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0.5rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
+.slide-in-left {
+  animation: slideInLeft 1s ease-out forwards;
 }
 
-input:focus, select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+@keyframes slideInLeft {
+  from { transform: translateX(-100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-/* Responsive tweaks */
+/* Responsive padding */
 @media (max-width: 768px) {
-  .p-10 {
+  .p-10, .p-8 {
     padding: 1rem;
   }
-  .p-8 {
-    padding: 0.75rem;
-  }
 }
 
-/* Bonus animation subtile sur les éléments validés */
+/* Validations réussies */
 .validated {
   animation: pop 0.4s ease forwards;
 }
@@ -120,4 +141,58 @@ input:focus, select:focus {
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* Loader circulaire */
+.loader {
+  border: 5px solid #e5e7eb;
+  border-top: 5px solid #6366f1;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Badges de niveau */
+.badge {
+  background-color: #6366f1;
+  color: white;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Ombres premium */
+.shadow-lg {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Subtile hover background */
+.hover-bg {
+  transition: background-color 0.3s ease;
+}
+
+.hover-bg:hover {
+  background-color: #f3f4f6;
+}
+
+/* Glow animation */
+.glow-on-hover {
+  transition: all 0.3s ease-in-out;
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px #6366f1, 0 0 25px #6366f1;
 }
