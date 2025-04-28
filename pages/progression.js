@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import GraphiqueEvolution from "../composants/GraphiqueEvolution";
 import GraphiqueNote from "../composants/GraphiqueNote";
 
@@ -13,15 +13,21 @@ export default function ProgressionPage() {
   }, []);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-extrabold mb-6 text-blue-700">📈 Suivi de ta progression</h1>
+    <div className="p-10 max-w-7xl mx-auto fade-in">
+      <h1 className="text-4xl font-extrabold text-center mb-10 text-purple-600 tracking-wide">
+        📈 Suivi de ta progression
+      </h1>
+
       {historique.length > 0 ? (
-        <>
+        <div className="space-y-12">
           <GraphiqueEvolution historique={historique} />
           <GraphiqueNote historique={historique} />
-        </>
+        </div>
       ) : (
-        <p className="text-gray-500">Aucune donnée pour générer un graphique. Valide une journée pour commencer.</p>
+        <p className="text-center text-gray-500 text-lg mt-10">
+          Aucune donnée disponible pour générer un graphique.<br />
+          Valide une journée pour commencer ton suivi !
+        </p>
       )}
     </div>
   );
