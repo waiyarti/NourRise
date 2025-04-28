@@ -1,29 +1,18 @@
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function GraphiqueNote({ historique }) {
-  if (!historique || historique.length === 0) return null;
-
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mt-6">
-      <h2 className="text-lg font-bold mb-4 text-yellow-600">Évolution de la Note /20</h2>
-      <ResponsiveContainer width="100%" height={300}>
+    <div style={{ width: '100%', height: 300 }}>
+      <ResponsiveContainer>
         <LineChart
-          data={historique.slice().reverse()}
-          margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+          data={[...historique].reverse()} // Toujours dans l'ordre naturel
+          margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis domain={[0, 20]} />
           <Tooltip />
-          <Line type="monotone" dataKey="note" stroke="#facc15" strokeWidth={2} />
+          <Line type="monotone" dataKey="note" stroke="#facc15" strokeWidth={3} name="Note sur 20" />
         </LineChart>
       </ResponsiveContainer>
     </div>
