@@ -1,97 +1,45 @@
-@/* Fichier : styles/globals.css */
+/* styles/globals.css */
 
+/* Tailwind imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Styles */
-body {
-  background-color: #f5f7fa;
-  font-family: 'Inter', sans-serif;
-  color: #1f2937;
+/* Animations personnalisées */
+.fade-in {
+  animation: fadeIn 1.5s ease-in forwards;
 }
 
-h1, h2, h3 {
-  font-weight: bold;
+.slide-in-bottom {
+  animation: slideInBottom 1s ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInBottom {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Styles globaux personnalisés */
+body {
+  background: linear-gradient(to right, #f8fafc, #e0f2fe);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 .card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  @apply p-6 bg-white rounded-lg shadow hover:shadow-xl transition duration-300;
 }
 
 .button-primary {
-  background-color: #2563eb;
-  color: white;
-  padding: 12px 24px;
-  font-weight: 600;
-  border-radius: 8px;
-  text-align: center;
-  transition: background-color 0.3s ease;
+  @apply bg-blue-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition-all duration-300;
 }
 
-.button-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.fade-in {
-  animation: fadeIn 0.8s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Layout */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* Task List */
-.task-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #ffffff;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  transition: background 0.3s;
-}
-
-.task-item:hover {
-  background: #f0f4f8;
-}
-
-/* Select field */
-select {
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  padding: 8px;
-  background: #ffffff;
-  font-size: 1rem;
-}
-
-select:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
+.select-style {
+  @apply border-gray-300 border rounded p-2 hover:border-blue-400 focus:border-blue-600 transition duration-200;
 }
