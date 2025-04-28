@@ -1,22 +1,123 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Fichier : styles/globals.css */
 
-/* Animations personnalisées */
+/* Reset de base pour uniformiser l'affichage */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Configuration générale */
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f9fafb;
+  color: #333;
+  scroll-behavior: smooth;
+}
+
+/* Titres */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Liens */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Boutons généraux */
+.button-primary {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.button-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+}
+
+/* Cartes */
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Animations */
 .fade-in {
-  animation: fadeIn 1s ease-in;
+  animation: fadeIn 1s ease forwards;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .slide-in {
-  animation: slideIn 0.8s ease-out;
+  animation: slideIn 1s ease forwards;
 }
 
 @keyframes slideIn {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.zoom-in {
+  animation: zoomIn 0.8s ease forwards;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Input / Selects stylisés */
+input, select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.5rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .p-10 {
+    padding: 1rem;
+  }
+  .p-8 {
+    padding: 0.75rem;
+  }
+}
+
+/* Bonus animation subtile sur les éléments validés */
+.validated {
+  animation: pop 0.4s ease forwards;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
