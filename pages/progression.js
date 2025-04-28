@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import GraphiqueProgression from "../components/GraphiqueProgression";
+import GraphiqueEvolution from "../components/GraphiqueEvolution";
 import GraphiqueNote from "../components/GraphiqueNote";
 
 export default function Progression() {
@@ -13,16 +13,11 @@ export default function Progression() {
   }, []);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-blue-600">📊 Progression complète</h1>
-      {historique.length > 0 ? (
-        <>
-          <GraphiqueProgression historique={historique} />
-          <GraphiqueNote historique={historique} />
-        </>
-      ) : (
-        <p className="text-center text-gray-500">Pas encore d'historique enregistré.</p>
-      )}
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-extrabold mb-6 text-blue-600">📈 Progression quotidienne</h1>
+
+      <GraphiqueEvolution historique={historique} />
+      <GraphiqueNote historique={historique} />
     </div>
   );
 }
