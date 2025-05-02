@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import AnalyseIA from "../composants/AnalyseIA";
 import GraphiqueEvolution from "../composants/GraphiqueEvolution";
 import GraphiqueNote from "../composants/GraphiqueNote";
+import { supabase } from "../supabaseClient"; // ✅ AJOUTÉ
 
 const tachesJournalieresInitiales = [
   { nom: "Coran", coef: 5 },
@@ -71,16 +72,26 @@ export default function Home() {
 
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
 
-  const ajouterJournee = () => {
+  const ajouterJournee = async () => {
     const taux = calculerTaux();
     const note = calculerNote(taux);
     const nouvelleJournee = {
-      date: format(new Date(), "dd/MM/yyyy"),
-      tauxReussite: taux,
-      note
+      date: format(new Date(), "yyyy-MM-dd"),
+      taux_reussite: taux,
+      note,
+      taches: taches.map(({ nom, coef, etat }) => ({ nom, coef, etat })),
+      created_at: new Date().toISOString()
     };
-    setHistorique([nouvelleJournee, ...historique]);
-    setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
+
+    const { data, error } = await supabase.from("journal").insert([nouvelleJournee]);
+
+    if (error) {
+      console.error("❌ Erreur Supabase :", error.message);
+    } else {
+      console.log("✅ Journée enregistrée dans Supabase !");
+      setHistorique([nouvelleJournee, ...historique]);
+      setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
+    }
   };
 
   const supprimerJournee = (index) => {
