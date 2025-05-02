@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import AnalyseIA from "../composants/AnalyseIA";
 import GraphiqueEvolution from "../composants/GraphiqueEvolution";
 import GraphiqueNote from "../composants/GraphiqueNote";
-import { supabase } from "../supabaseClient"; // ✅ AJOUTÉ
+import { supabase } from "../supabaseClient"; // ✅ Connexion Supabase
 
 const tachesJournalieresInitiales = [
   { nom: "Coran", coef: 5 },
@@ -76,7 +76,7 @@ export default function Home() {
     const taux = calculerTaux();
     const note = calculerNote(taux);
     const nouvelleJournee = {
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: format(new Date(), "yyyy-MM-dd"), // format pour Supabase
       taux_reussite: taux,
       note,
       taches: taches.map(({ nom, coef, etat }) => ({ nom, coef, etat })),
@@ -185,7 +185,7 @@ export default function Home() {
         {historique.map((jour, index) => (
           <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg mb-4 shadow hover:shadow-md transition">
             <div>
-              {jour.date} – {jour.tauxReussite}% – {jour.note}/20
+              {jour.date} – {jour.taux_reussite}% – {jour.note}/20
             </div>
             <button
               onClick={() => supprimerJournee(index)}
@@ -199,7 +199,7 @@ export default function Home() {
 
       {historique.length > 0 && (
         <div className="mt-10">
-          <AnalyseIA tauxReussite={historique[0].tauxReussite} note={historique[0].note} />
+          <AnalyseIA tauxReussite={historique[0].taux_reussite} note={historique[0].note} />
         </div>
       )}
     </div>
