@@ -73,12 +73,17 @@ export default function Home() {
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
 
   const ajouterJournee = async () => {
+    const nom_utilisateur = prompt("Entre ton prénom ou pseudo :");
+    if (!nom_utilisateur) return alert("Le nom est obligatoire pour valider la journée.");
+
     const taux = calculerTaux();
     const note = calculerNote(taux);
+
     const nouvelleJournee = {
-      date: format(new Date(), "yyyy-MM-dd"), // format pour Supabase
+      date: format(new Date(), "yyyy-MM-dd"),
       taux_reussite: taux,
       note,
+      nom_utilisateur, // ✅ nouveau champ ajouté ici
       taches: taches.map(({ nom, coef, etat }) => ({ nom, coef, etat })),
       created_at: new Date().toISOString()
     };
@@ -87,6 +92,7 @@ export default function Home() {
 
     if (error) {
       console.error("❌ Erreur Supabase :", error.message);
+      alert("Erreur lors de l'enregistrement !");
     } else {
       console.log("✅ Journée enregistrée dans Supabase !");
       setHistorique([nouvelleJournee, ...historique]);
