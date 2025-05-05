@@ -5,7 +5,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Suppression des marges et paddings par défaut */
 * {
   margin: 0;
   padding: 0;
@@ -14,9 +13,9 @@
 
 /* 2. COULEURS PRINCIPALES */
 :root {
-  --primary: #0056b3; /* Bleu pro */
-  --secondary: #ffc107; /* Or lumineux */
-  --background: #f5f7fa; /* Gris très clair */
+  --primary: #0056b3;
+  --secondary: #ffc107;
+  --background: #f5f7fa;
   --white: #ffffff;
   --black: #1c1c1c;
   --success: #28a745;
@@ -36,7 +35,7 @@ h1, h2, h3, h4 {
   font-weight: bold;
 }
 
-/* 4. SCROLLBAR DESIGN */
+/* 4. SCROLLBAR */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -56,7 +55,6 @@ h1, h2, h3, h4 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s, box-shadow 0.3s;
 }
-
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
@@ -71,55 +69,48 @@ h1, h2, h3, h4 {
   font-weight: 600;
   transition: background 0.3s, transform 0.2s;
 }
-
 .button-primary:hover {
   transform: scale(1.05);
   background: linear-gradient(135deg, var(--secondary), var(--primary));
 }
 
-/* 7. INPUTS ET SELECTS */
-input, select {
+/* 7. INPUTS */
+input, select, textarea {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   width: 100%;
   transition: border 0.3s, box-shadow 0.3s;
 }
-
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 5px var(--primary);
   outline: none;
 }
 
 /* 8. ANIMATIONS */
-
 .fade-in {
   animation: fadeIn 1s ease-in;
 }
-
 @keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .slide-in-left {
   animation: slideInLeft 0.8s ease-out;
 }
-
 @keyframes slideInLeft {
-  0% { transform: translateX(-100px); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
+  from { transform: translateX(-100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .pulse {
   animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
-  0% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
 }
 
 /* 9. BADGES */
@@ -132,25 +123,16 @@ input:focus, select:focus {
   font-weight: 600;
 }
 
-/* 10. SUCCÈS, WARNING, DANGER */
-.success {
-  color: var(--success);
-}
-
-.warning {
-  color: var(--warning);
-}
-
-.danger {
-  color: var(--danger);
-}
+/* 10. MESSAGES */
+.success { color: var(--success); }
+.warning { color: var(--warning); }
+.danger { color: var(--danger); }
 
 /* 11. FEUX D’ARTIFICE */
 .fireworks {
   position: relative;
   overflow: hidden;
 }
-
 .fireworks::after {
   content: "";
   position: absolute;
@@ -163,7 +145,6 @@ input:focus, select:focus {
   transform: translate(-50%, -50%) scale(0);
   animation: fireworks 0.8s ease-out forwards;
 }
-
 @keyframes fireworks {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
@@ -179,20 +160,19 @@ input:focus, select:focus {
   animation: spin 1s linear infinite;
   margin: auto;
 }
-
 @keyframes spin {
-  0% { transform: rotate(0deg); }
+  0% { transform: rotate(0); }
   100% { transform: rotate(360deg); }
 }
 
-/* 13. BOOST DAYS (App spécial) */
+/* 13. BOOST MODE */
 .boost {
   background: linear-gradient(45deg, #00c6ff, #0072ff);
   color: white;
   box-shadow: 0 4px 20px rgba(0, 114, 255, 0.5);
 }
 
-/* 14. TRANSITIONS FLUIDES */
+/* 14. TRANSITIONS */
 .transition-all {
   transition: all 0.4s ease;
 }
@@ -207,12 +187,7 @@ input:focus, select:focus {
   font-size: 1.5rem;
 }
 
-/* 16. BACKGROUND LIGHT EFFECT */
-.bg-light-effect {
-  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
-}
-
-/* 17. SECTION SPÉCIALE */
+/* 16. SECTIONS */
 .section {
   background: var(--white);
   border-radius: 20px;
@@ -221,28 +196,20 @@ input:focus, select:focus {
   margin-bottom: 30px;
 }
 
-/* 18. MINI-EFFETS CLIC */
+/* 17. EFFETS DE CLIC */
 .click-effect:active {
   transform: scale(0.95);
 }
 
-/* 19. EFFET VAGUE */
+/* 18. EFFET VAGUE */
 .wave {
   animation: wave 2s infinite;
 }
-
 @keyframes wave {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(15deg); }
 }
 
-/* 20. STYLE BONUS */
-.hidden {
-  display: none;
-}
-
-.visible {
-  display: block;
-}
-
-/* (… Je peux encore te continuer si tu veux pousser à plus de 1200 lignes après !) */
+/* 19. VISIBILITÉ */
+.hidden { display: none; }
+.visible { display: block; }
