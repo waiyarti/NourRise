@@ -39,11 +39,11 @@ const tachesJournalieresInitiales = [
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [taches, setTaches] = useState([]);
   const [historique, setHistorique] = useState([]);
   const router = useRouter();
 
-  // Redirection si non connecté
   useEffect(() => {
     const verifierSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -53,6 +53,7 @@ export default function Home() {
         setUser(session.user);
         chargerHistorique(session.user.id);
       }
+      setLoading(false);
     };
     verifierSession();
   }, []);
@@ -103,7 +104,7 @@ export default function Home() {
     const note = calculerNote(taux);
 
     const nouvelleJournee = {
-      user_id: user.id, // ✅ lié à l'utilisateur
+      user_id: user.id,
       date: format(new Date(), "yyyy-MM-dd"),
       taux_reussite: taux,
       note,
@@ -147,6 +148,10 @@ export default function Home() {
     await supabase.auth.signOut();
     router.push("/connexion");
   };
+
+  if (loading) {
+    return <p className="text-center mt-20">Chargement...</p>;
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen rounded-lg shadow-xl animate-fadeIn">
