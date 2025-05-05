@@ -1,32 +1,36 @@
 // --- Importations principales ---
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../supabaseClient";
+import { FiMail, FiLock } from "react-icons/fi"; // Icônes
 
-// --- Composant de champ de formulaire réutilisable ---
-function ChampInput({ label, type, valeur, onChange, placeholder }) {
+// --- Champ de formulaire réutilisable ---
+function ChampInput({ label, type, valeur, onChange, placeholder, Icone }) {
   return (
     <div className="mb-4">
       <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
-      <input
-        type={type}
-        value={valeur}
-        onChange={onChange}
-        placeholder={placeholder}
-        required
-        className="w-full px-3 py-2 border rounded shadow-sm focus:ring-2 focus:ring-blue-400 transition"
-      />
+      <div className="relative">
+        {Icone && <Icone className="absolute top-3 left-3 text-gray-400" />}
+        <input
+          type={type}
+          value={valeur}
+          onChange={onChange}
+          placeholder={placeholder}
+          required
+          className="w-full px-10 py-2 border rounded shadow-sm focus:ring-2 focus:ring-blue-400 transition"
+        />
+      </div>
     </div>
   );
 }
 
-// --- Composant de feedback utilisateur ---
+// --- Message d'erreur ou succès ---
 function MessageFeedback({ message, type }) {
   const color = type === "erreur" ? "text-red-600" : "text-green-600";
-  return <p className={`text-sm ${color} mb-3`}>{message}</p>;
+  return <p className={`text-sm ${color} mb-3 text-center`}>{message}</p>;
 }
 
-// --- Composant du switch mode Connexion/Inscription ---
+// --- Changement mode Connexion/Inscription ---
 function ToggleMode({ mode, setMode }) {
   return (
     <p className="mt-4 text-center text-sm">
@@ -41,7 +45,7 @@ function ToggleMode({ mode, setMode }) {
   );
 }
 
-// --- Composant principal de Connexion ---
+// --- Composant principal ---
 export default function Connexion() {
   const [email, setEmail] = useState("");
   const [motdepasse, setMotdepasse] = useState("");
@@ -51,10 +55,18 @@ export default function Connexion() {
   const [mode, setMode] = useState("connexion");
   const router = useRouter();
 
-  const validerEmail = (email) => {
-    const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
-    return regex.test(email);
-  };
+  // Redirection automatique si déjà connecté
+  useEffect(() => {
+    const verifierSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.push("/");
+      }
+    };
+    verifierSession();
+  }, []);
+
+  const validerEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,13 +92,13 @@ export default function Connexion() {
         const { error } = await supabase.auth.signUp({ email, password: motdepasse });
         if (error) throw error;
         setTypeMessage("valide");
-        setMessage("Compte créé. Vérifie ta boîte mail.");
+        setMessage("Compte créé ! Vérifie tes e-mails.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: motdepasse });
         if (error) throw error;
         setTypeMessage("valide");
         setMessage("Connexion réussie !");
-        setTimeout(() => router.push("/auth-check"), 1000);
+        setTimeout(() => router.push("/"), 1500);
       }
     } catch (err) {
       setTypeMessage("erreur");
@@ -97,10 +109,10 @@ export default function Connexion() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-white px-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg border border-blue-200 animate-fadeIn">
-        <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">
-          {mode === "connexion" ? "Connexion à NourRise" : "Créer un compte"}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 to-blue-50 px-4">
+      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl border border-blue-300 animate-fadeIn">
+        <h1 className="text-3xl font-extrabold text-center text-blue-800 mb-6 tracking-tight">
+          {mode === "connexion" ? "Connexion à Wivya" : "Créer mon compte"}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,6 +122,7 @@ export default function Connexion() {
             valeur={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="exemple@mail.com"
+            Icone={FiMail}
           />
           <ChampInput
             label="Mot de passe"
@@ -117,6 +130,7 @@ export default function Connexion() {
             valeur={motdepasse}
             onChange={(e) => setMotdepasse(e.target.value)}
             placeholder="••••••••"
+            Icone={FiLock}
           />
 
           {message && <MessageFeedback message={message} type={typeMessage} />}
@@ -124,7 +138,7 @@ export default function Connexion() {
           <button
             type="submit"
             disabled={chargement}
-            className={`w-full py-2 px-4 text-white font-semibold rounded transition duration-200 ${
+            className={`w-full py-2 px-4 text-white font-semibold rounded-lg transition duration-200 ${
               chargement ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -134,9 +148,9 @@ export default function Connexion() {
 
         <ToggleMode mode={mode} setMode={setMode} />
 
-        <p className="text-xs text-gray-400 mt-6 text-center">
-          NourRise – Propulsé par Supabase | Auth sécurisée | 2025
-        </p>
+        <div className="mt-6 text-xs text-center text-gray-400">
+          Wivya – Ton compagnon de discipline | Supabase sécurisé | 2025
+        </div>
       </div>
     </div>
   );
