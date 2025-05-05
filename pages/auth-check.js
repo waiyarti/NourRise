@@ -1,36 +1,29 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { supabase } from "../supabaseClient";
 
 export default function AuthCheck() {
-  const [loading, setLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const verifierUtilisateur = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        router.push("/connexion");
-      } else {
-        setUserInfo(user);
-        setTimeout(() => {
-          router.push("/");
-        }, 500); // délai pour Safari
-      }
-      setLoading(false);
-    };
-    verifierUtilisateur();
-  }, []);
+    const verifierConnexion = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
-  if (loading) return <p className="text-center mt-20">Vérification de la session...</p>;
+      if (session?.user) {
+        // Tu peux stocker l'utilisateur en localStorage si besoin
+        localStorage.setItem("utilisateurWivya", session.user.email);
+        router.push("/"); // redirige vers la page d’accueil
+      } else {
+        router.push("/connexion"); // renvoie vers la connexion
+      }
+    };
+
+    verifierConnexion();
+  }, [router]);
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-semibold mb-2">Connexion réussie !</h2>
-      <pre className="text-sm bg-gray-100 p-4 rounded">
-        {JSON.stringify(userInfo, null, 2)}
-      </pre>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="loader" />
     </div>
   );
 }
