@@ -3,7 +3,8 @@ import { format } from "date-fns";
 import AnalyseIA from "../composants/AnalyseIA";
 import GraphiqueEvolution from "../composants/GraphiqueEvolution";
 import GraphiqueNote from "../composants/GraphiqueNote";
-import { supabase } from "../supabaseClient"; // ✅ Connexion Supabase
+import { supabase } from "../supabaseClient";
+import { useRouter } from "next/router";
 
 const tachesJournalieresInitiales = [
   { nom: "Coran", coef: 5 },
@@ -37,28 +38,51 @@ const tachesJournalieresInitiales = [
 ];
 
 export default function Home() {
+  const [user, setUser] = useState(null);
   const [taches, setTaches] = useState([]);
   const [historique, setHistorique] = useState([]);
+  const router = useRouter();
+
+  // Redirection si non connecté
+  useEffect(() => {
+    const verifierSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/connexion");
+      } else {
+        setUser(session.user);
+        chargerHistorique(session.user.id);
+      }
+    };
+    verifierSession();
+  }, []);
+
+  const chargerHistorique = async (userId) => {
+    const { data, error } = await supabase
+      .from("journal")
+      .select("*")
+      .eq("user_id", userId)
+      .order("date", { ascending: false });
+
+    if (!error) {
+      setHistorique(data);
+    } else {
+      console.error("Erreur chargement historique :", error.message);
+    }
+  };
 
   useEffect(() => {
     const sauvegardeTaches = localStorage.getItem("tachesNourRise");
-    const sauvegardeHistorique = localStorage.getItem("historiqueNourRise");
-
     if (sauvegardeTaches) {
       setTaches(JSON.parse(sauvegardeTaches));
     } else {
       setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
     }
-
-    if (sauvegardeHistorique) {
-      setHistorique(JSON.parse(sauvegardeHistorique));
-    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem("tachesNourRise", JSON.stringify(taches));
-    localStorage.setItem("historiqueNourRise", JSON.stringify(historique));
-  }, [taches, historique]);
+  }, [taches]);
 
   const calculerTaux = () => {
     const totalPossible = taches.reduce((acc, t) => acc + t.coef, 0);
@@ -73,28 +97,25 @@ export default function Home() {
   const calculerNote = (taux) => Math.round((taux / 5) * 10) / 10;
 
   const ajouterJournee = async () => {
-    const nom_utilisateur = prompt("Entre ton prénom ou pseudo :");
-    if (!nom_utilisateur) return alert("Le nom est obligatoire pour valider la journée.");
+    if (!user) return alert("Utilisateur non connecté");
 
     const taux = calculerTaux();
     const note = calculerNote(taux);
 
     const nouvelleJournee = {
+      user_id: user.id, // ✅ lié à l'utilisateur
       date: format(new Date(), "yyyy-MM-dd"),
       taux_reussite: taux,
       note,
-      nom_utilisateur, // ✅ nouveau champ ajouté ici
       taches: taches.map(({ nom, coef, etat }) => ({ nom, coef, etat })),
       created_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase.from("journal").insert([nouvelleJournee]);
+    const { error } = await supabase.from("journal").insert([nouvelleJournee]);
 
     if (error) {
-      console.error("❌ Erreur Supabase :", error.message);
-      alert("Erreur lors de l'enregistrement !");
+      console.error("Erreur Supabase :", error.message);
     } else {
-      console.log("✅ Journée enregistrée dans Supabase !");
       setHistorique([nouvelleJournee, ...historique]);
       setTaches(tachesJournalieresInitiales.map((t) => ({ ...t, etat: "" })));
     }
@@ -107,31 +128,42 @@ export default function Home() {
   };
 
   const ajouterTache = () => {
-    const nom = prompt("Entre le nom de la nouvelle tâche :");
-    const coef = parseInt(prompt("Entre son coefficient (1 à 5) :"), 10);
-
-    if (nom && coef && coef > 0 && coef <= 5) {
-      const nouvelleTache = { nom, coef, etat: "" };
-      setTaches([...taches, nouvelleTache]);
+    const nom = prompt("Nom de la nouvelle tâche :");
+    const coef = parseInt(prompt("Coefficient (1 à 5) :"), 10);
+    if (nom && coef > 0 && coef <= 5) {
+      setTaches([...taches, { nom, coef, etat: "" }]);
     }
   };
 
   const supprimerTache = (index) => {
-    if (confirm("Es-tu sûr de vouloir supprimer cette tâche ?")) {
+    if (confirm("Supprimer cette tâche ?")) {
       const nouvellesTaches = [...taches];
       nouvellesTaches.splice(index, 1);
       setTaches(nouvellesTaches);
     }
   };
 
+  const seDeconnecter = async () => {
+    await supabase.auth.signOut();
+    router.push("/connexion");
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen rounded-lg shadow-xl animate-fadeIn">
-      <h1 className="text-4xl font-extrabold mb-8 text-center text-blue-700 tracking-wide">🚀 NourRise - Global View</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-700">🚀 NourRise - Global View</h1>
+        <button
+          onClick={seDeconnecter}
+          className="text-red-500 hover:text-red-700 font-semibold border border-red-500 px-4 py-2 rounded"
+        >
+          Se déconnecter
+        </button>
+      </div>
 
       <div className="p-6 mb-8 bg-white rounded-xl shadow-md border border-blue-300">
         <h2 className="text-2xl font-bold mb-4 text-blue-600 text-center">🌟 Résumé de ta Journée</h2>
         <p className="text-center text-lg">
-          Taux de réussite : <span className="font-bold">{historique[0]?.tauxReussite || 0}%</span>
+          Taux de réussite : <span className="font-bold">{historique[0]?.taux_reussite || 0}%</span>
         </p>
         <p className="text-center text-lg">
           Note sur 20 : <span className="font-bold">{historique[0]?.note || 0}/20</span>
