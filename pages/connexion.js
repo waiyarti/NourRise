@@ -1,51 +1,8 @@
-// --- Importations principales ---
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../supabaseClient";
-import { FiMail, FiLock } from "react-icons/fi"; // Icônes
+import { FiMail, FiLock } from "react-icons/fi";
 
-// --- Champ de formulaire réutilisable ---
-function ChampInput({ label, type, valeur, onChange, placeholder, Icone }) {
-  return (
-    <div className="mb-4">
-      <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
-      <div className="relative">
-        {Icone && <Icone className="absolute top-3 left-3 text-gray-400" />}
-        <input
-          type={type}
-          value={valeur}
-          onChange={onChange}
-          placeholder={placeholder}
-          required
-          className="w-full px-10 py-2 border rounded shadow-sm focus:ring-2 focus:ring-blue-400 transition"
-        />
-      </div>
-    </div>
-  );
-}
-
-// --- Message d'erreur ou succès ---
-function MessageFeedback({ message, type }) {
-  const color = type === "erreur" ? "text-red-600" : "text-green-600";
-  return <p className={`text-sm ${color} mb-3 text-center`}>{message}</p>;
-}
-
-// --- Changement mode Connexion/Inscription ---
-function ToggleMode({ mode, setMode }) {
-  return (
-    <p className="mt-4 text-center text-sm">
-      {mode === "connexion" ? "Pas encore inscrit ? " : "Déjà un compte ? "}
-      <span
-        onClick={() => setMode(mode === "connexion" ? "inscription" : "connexion")}
-        className="text-blue-600 font-semibold hover:underline cursor-pointer"
-      >
-        {mode === "connexion" ? "Inscris-toi" : "Connecte-toi"}
-      </span>
-    </p>
-  );
-}
-
-// --- Composant principal ---
 export default function Connexion() {
   const [email, setEmail] = useState("");
   const [motdepasse, setMotdepasse] = useState("");
@@ -55,18 +12,7 @@ export default function Connexion() {
   const [mode, setMode] = useState("connexion");
   const router = useRouter();
 
-  // Redirection automatique si déjà connecté
-  useEffect(() => {
-    const verifierSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        router.push("/");
-      }
-    };
-    verifierSession();
-  }, []);
-
-  const validerEmail = (email) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  const validerEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,13 +38,13 @@ export default function Connexion() {
         const { error } = await supabase.auth.signUp({ email, password: motdepasse });
         if (error) throw error;
         setTypeMessage("valide");
-        setMessage("Compte créé ! Vérifie tes e-mails.");
+        setMessage("Compte créé. Vérifie ta boîte mail.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: motdepasse });
         if (error) throw error;
         setTypeMessage("valide");
         setMessage("Connexion réussie !");
-        setTimeout(() => router.push("/"), 1500);
+        setTimeout(() => router.push("/auth-check"), 1000);
       }
     } catch (err) {
       setTypeMessage("erreur");
@@ -109,48 +55,77 @@ export default function Connexion() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 to-blue-50 px-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl border border-blue-300 animate-fadeIn">
-        <h1 className="text-3xl font-extrabold text-center text-blue-800 mb-6 tracking-tight">
-          {mode === "connexion" ? "Connexion à Wivya" : "Créer mon compte"}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-blue-100 via-white to-purple-100 px-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl border border-blue-200 animate-fadeIn">
+        <h1 className="text-3xl font-extrabold text-center text-blue-700 mb-6">
+          {mode === "connexion" ? "Connexion à Wivya" : "Créer un compte"}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ChampInput
-            label="Adresse e-mail"
-            type="email"
-            valeur={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="exemple@mail.com"
-            Icone={FiMail}
-          />
-          <ChampInput
-            label="Mot de passe"
-            type="password"
-            valeur={motdepasse}
-            onChange={(e) => setMotdepasse(e.target.value)}
-            placeholder="••••••••"
-            Icone={FiLock}
-          />
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700">Adresse e-mail</label>
+            <div className="relative">
+              <FiMail className="absolute top-3 left-3 text-gray-400" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="exemple@mail.com"
+                className="pl-10 w-full py-2 px-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition"
+                required
+              />
+            </div>
+          </div>
 
-          {message && <MessageFeedback message={message} type={typeMessage} />}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700">Mot de passe</label>
+            <div className="relative">
+              <FiLock className="absolute top-3 left-3 text-gray-400" />
+              <input
+                type="password"
+                value={motdepasse}
+                onChange={(e) => setMotdepasse(e.target.value)}
+                placeholder="••••••••"
+                className="pl-10 w-full py-2 px-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition"
+                required
+              />
+            </div>
+          </div>
+
+          {message && (
+            <p className={`text-sm ${typeMessage === "erreur" ? "text-red-500" : "text-green-600"} text-center`}>
+              {message}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={chargement}
-            className={`w-full py-2 px-4 text-white font-semibold rounded-lg transition duration-200 ${
+            className={`w-full py-2 px-4 text-white font-bold rounded-lg transition duration-200 ${
               chargement ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {chargement ? "Chargement..." : mode === "connexion" ? "Connexion" : "Créer un compte"}
+            {chargement
+              ? "Chargement..."
+              : mode === "connexion"
+              ? "Connexion"
+              : "Créer mon compte"}
           </button>
         </form>
 
-        <ToggleMode mode={mode} setMode={setMode} />
+        <p className="mt-5 text-center text-sm text-gray-600">
+          {mode === "connexion" ? "Pas encore inscrit ?" : "Déjà inscrit ?"}{" "}
+          <span
+            onClick={() => setMode(mode === "connexion" ? "inscription" : "connexion")}
+            className="text-blue-600 hover:underline cursor-pointer font-semibold"
+          >
+            {mode === "connexion" ? "Inscris-toi" : "Connecte-toi"}
+          </span>
+        </p>
 
-        <div className="mt-6 text-xs text-center text-gray-400">
+        <p className="text-xs text-gray-400 mt-6 text-center">
           Wivya – Ton compagnon de discipline | Supabase sécurisé | 2025
-        </div>
+        </p>
       </div>
     </div>
   );
