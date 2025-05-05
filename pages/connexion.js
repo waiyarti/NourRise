@@ -8,11 +8,11 @@ export default function Connexion() {
   const [motdepasse, setMotdepasse] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
-  const [mode, setMode] = useState("connexion"); // "connexion" ou "inscription"
+  const [mode, setMode] = useState("connexion");
   const router = useRouter();
 
   const validerEmail = (email) =>
-    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
