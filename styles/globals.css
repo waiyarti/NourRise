@@ -23,6 +23,21 @@
   --warning: #ffc107;
   --danger: #dc3545;
   --gradient: linear-gradient(135deg, #0056b3, #ffc107);
+  --highlight: rgba(255, 255, 0, 0.2);
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1c1c;
+    --white: #f5f7fa;
+    --black: #ffffff;
+    --primary: #0d6efd;
+    --secondary: #ffcd39;
+    --danger: #d9534f;
+    --success: #5cb85c;
+    --gradient: linear-gradient(135deg, #0d6efd, #ffcd39);
+  }
 }
 
 /* 3. TYPOGRAPHIE */
@@ -85,6 +100,15 @@ p {
   transform: scale(1.1);
   box-shadow: 0 8px 25px rgba(0, 86, 179, 0.5);
 }
+.button-primary:active {
+  transform: scale(0.95);
+  box-shadow: 0 5px 10px rgba(0, 86, 179, 0.2);
+}
+.button-primary:disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
 
 /* 7. INPUTS */
 input, select, textarea {
@@ -99,6 +123,9 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 8px var(--primary);
   outline: none;
+}
+input:focus:invalid {
+  border-color: var(--danger);
 }
 
 /* 8. ANIMATIONS */
@@ -119,6 +146,15 @@ input:focus, select:focus, textarea:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.pop-in {
+  animation: pop 0.6s ease-out;
+}
+@keyframes pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
 /* 9. BADGES */
 .badge {
   background: var(--gradient);
@@ -128,6 +164,14 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.9rem;
   font-weight: 600;
   display: inline-block;
+}
+.badge-animated {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
 /* 10. LOADER */
@@ -211,11 +255,4 @@ input:focus, select:focus, textarea:focus {
 .section:hover {
   transform: scale(1.02);
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
-}
-
-/* 15. EFFET PARALLAX */
-.parallax {
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center;
 }
