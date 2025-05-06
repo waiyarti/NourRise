@@ -269,7 +269,215 @@ export default function Home() {
       </Head>
 
       <div className={`min-h-screen ${modeNuit ? 'dark' : ''} bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500`}>
-        {/* ... reste du JSX ... */}
+{/* Barre de progression niveau */}
+<div className="fixed top-0 left-0 w-full h-1 bg-gray-200">
+  <div 
+    className={`h-full bg-gradient-to-r ${NIVEAUX[niveau-1].couleur}`}
+    style={{ 
+      width: `${((points - NIVEAUX[niveau-1].requis) / 
+        (NIVEAUX[niveau].requis - NIVEAUX[niveau-1].requis)) * 100}%` 
+    }}
+  />
+</div>
+
+{/* Header avec niveau et points */}
+<header className="p-6 text-white">
+  <div className="flex justify-between items-center">
+    <div className="flex items-center space-x-4">
+      <div className={`p-3 rounded-full bg-gradient-to-r ${NIVEAUX[niveau-1].couleur} floating`}>
+        <span className="text-2xl">{NIVEAUX[niveau-1].icone}</span>
+      </div>
+      <div>
+        <h1 className="text-3xl font-bold">Niveau {niveau}</h1>
+        <p className="text-white/80">{NIVEAUX[niveau-1].nom}</p>
+      </div>
+    </div>
+    
+    <div className="flex items-center space-x-6">
+      <div className="text-center">
+        <div className="text-3xl font-bold floating">🔥</div>
+        <div className="text-sm">{streak} jours</div>
+      </div>
+      <div className="text-center">
+        <div className="text-3xl font-bold">{points}</div>
+        <div className="text-sm">points</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+{/* Citation du jour */}
+{citationDuJour && (
+  <div className="mx-auto max-w-4xl my-6 p-4 glassmorphism rounded-lg text-white text-center">
+    <p className="text-lg italic">"{citationDuJour.texte}"</p>
+    <p className="text-sm mt-2">- {citationDuJour.auteur}</p>
+  </div>
+)}
+
+{/* Contenu principal */}
+<main className="container mx-auto p-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {/* Tâches */}
+    <div className="md:col-span-2 glassmorphism rounded-xl p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">Tâches du jour</h2>
+        <div className="flex space-x-2">
+          {Object.entries(CATEGORIES).map(([key, cat]) => (
+            <button
+              key={key}
+              onClick={() => setCategorieActive(key)}
+              className={`px-3 py-1 rounded-full transition ${
+                categorieActive === key ? cat.couleur : 'bg-white/10 text-white'
+              }`}
+            >
+              {cat.icone}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Liste des tâches */}
+      <div className="space-y-4">
+        {taches
+          .filter(t => categorieActive === "TOUS" || t.categorie === categorieActive)
+          .map((tache, index) => (
+            <div
+              key={index}
+              className="glassmorphism p-4 rounded-lg flex items-center justify-between group hover:scale-102 transition"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">
+                  {CATEGORIES[tache.categorie].icone}
+                </span>
+                <span className="text-white">{tache.nom}</span>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="flex space-x-2">
+                  {[...Array(tache.coef)].map((_, i) => (
+                    <span key={i} className="text-yellow-400">⭐</span>
+                  ))}
+                </div>
+                <select
+                  value={tache.etat || ""}
+                  onChange={(e) => {
+                    const nouvelEtat = e.target.value;
+                    const ancienEtat = taches[index].etat;
+                    
+                    const updated = [...taches];
+                    updated[index].etat = nouvelEtat;
+                    updated[index].completed = nouvelEtat === "Terminé";
+                    setTaches(updated);
+
+                    if (nouvelEtat === "Terminé" && ancienEtat !== "Terminé") {
+                      ajouterPoints(tache.points || tache.coef * 10);
+                      setCombo(prev => prev + 1);
+                    }
+                  }}
+                  className="bg-white/10 text-white border-0 rounded-lg p-2"
+                >
+                  <option value="">À faire</option>
+                  <option value="Terminé">Terminé</option>
+                  <option value="En cours">En cours</option>
+                  <option value="Non fait">Non fait</option>
+                </select>
+              </div>
+            </div>
+          ))}
+      </div>
+
+      {/* Pas de tâches */}
+      {taches.filter(t => categorieActive === "TOUS" || t.categorie === categorieActive).length === 0 && (
+        <div className="text-center text-white/60 py-8">
+          Aucune tâche dans cette catégorie
+        </div>
+      )}
+
+      {/* Boutons d'action */}
+      <div className="mt-6 flex justify-between">
+        <button
+          onClick={() => {/* Logique pour ajouter une tâche */}}
+          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition"
+        >
+          Ajouter une tâche
+        </button>
+        <button
+          onClick={() => {/* Logique pour valider la journée */}}
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+        >
+          Valider la journée
+        </button>
+      </div>
+    </div>
+
+    {/* Statistiques et graphiques */}
+    <div className="space-y-6">
+      {/* Carte de progression */}
+      <div className="glassmorphism rounded-xl p-6">
+        <h3 className="text-xl font-bold text-white mb-4">Progression</h3>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-white/80 mb-1">
+              <span>Niveau {niveau}</span>
+              <span>{points} / {NIVEAUX[niveau].requis}</span>
+            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r ${NIVEAUX[niveau-1].couleur}`}
+                style={{
+                  width: `${((points - NIVEAUX[niveau-1].requis) / 
+                    (NIVEAUX[niveau].requis - NIVEAUX[niveau-1].requis)) * 100}%`
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Graphiques */}
+      {historique.length > 0 && (
+        <div className="glassmorphism rounded-xl p-6">
+          <GraphiqueEvolution historique={historique} />
+          <GraphiqueNote historique={historique} />
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* Historique */}
+  <div className="mt-10 glassmorphism rounded-xl p-6">
+    <h2 className="text-2xl font-bold text-white mb-6">📅 Historique</h2>
+    <div className="space-y-4">
+      {historique.map((jour, index) => (
+        <div
+          key={index}
+          className="flex justify-between items-center bg-white/10 p-4 rounded-lg hover:bg-white/20 transition"
+        >
+          <div className="text-white">
+            <span className="font-medium">
+              {format(new Date(jour.date), 'dd/MM/yyyy')}
+            </span>
+            <span className="mx-4">•</span>
+            <span className="text-green-400">{jour.taux_reussite}%</span>
+            <span className="mx-4">•</span>
+            <span className="text-yellow-400">{jour.note}/20</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</main>
+
+{/* Notifications */}
+{notification && (
+  <div className="fixed bottom-4 right-4 animate-slide-up">
+    <div className={`p-4 rounded-lg shadow-lg ${
+      notification.type === 'achievement' ? 'bg-yellow-400' : 'bg-green-400'
+    } text-white`}>
+      {notification.message}
+    </div>
+  </div>
+)}
       </div>
     </>
   );
