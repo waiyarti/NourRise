@@ -16,15 +16,15 @@ module.exports = {
         background: "#f5f7fa",
         black: "#1c1c1c",
         white: "#ffffff",
-        highlight: "rgba(255, 255, 0, 0.2)", // Pour des effets de surbrillance
+        highlight: "rgba(255, 255, 0, 0.2)",
         gradientStart: "#0056b3",
         gradientEnd: "#ffc107",
-        darkBackground: "#1c1c1c", // Pour le mode sombre
+        darkBackground: "#1c1c1c",
       },
       fontFamily: {
         sans: ["Poppins", "sans-serif"],
-        display: ["Oswald", "sans-serif"], // Pour des titres accrocheurs
-        handwriting: ["Pacifico", "cursive"], // Pour des éléments uniques
+        display: ["Oswald", "sans-serif"],
+        handwriting: ["Pacifico", "cursive"],
       },
       keyframes: {
         fadeIn: {
@@ -40,8 +40,14 @@ module.exports = {
           "100%": { transform: "rotate(360deg)" },
         },
         pulseGlow: {
-          "0%, 100%": { opacity: "0.9", boxShadow: "0 0 10px rgba(0, 86, 179, 0.8)" },
-          "50%": { opacity: "1", boxShadow: "0 0 20px rgba(0, 86, 179, 1)" },
+          "0%, 100%": {
+            opacity: "0.9",
+            boxShadow: "0 0 10px rgba(0, 86, 179, 0.8)",
+          },
+          "50%": {
+            opacity: "1",
+            boxShadow: "0 0 20px rgba(0, 86, 179, 1)",
+          },
         },
         bounceIn: {
           "0%": { transform: "scale(0.8)", opacity: "0" },
@@ -63,13 +69,13 @@ module.exports = {
         gradientShift: "gradientShift 4s ease infinite",
       },
       backgroundImage: {
-        'gradient-radial': "radial-gradient(circle, var(--tw-gradient-stops))",
-        'gradient-conic': "conic-gradient(from 0deg, var(--tw-gradient-stops))",
-        'hero-pattern': "url('/img/hero-pattern.svg')", // Exemple pour un fond personnalisé
+        "gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+        "gradient-conic": "conic-gradient(from 0deg, var(--tw-gradient-stops))",
+        "hero-pattern": "url('/img/hero-pattern.svg')",
       },
       boxShadow: {
-        glow: "0 0 20px rgba(0, 86, 179, 0.8)", // Effet lumineux
-        deep: "0 10px 15px rgba(0, 0, 0, 0.3)", // Ombre profonde
+        glow: "0 0 20px rgba(0, 86, 179, 0.8)",
+        deep: "0 10px 15px rgba(0, 0, 0, 0.3)",
       },
       transitionProperty: {
         height: "height",
@@ -78,8 +84,8 @@ module.exports = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'), // Pour styliser les formulaires
-    require('@tailwindcss/typography'), // Pour un meilleur rendu typographique
-    require('@tailwindcss/aspect-ratio'), // Pour les vidéos ou images responsives
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/aspect-ratio"),
   ],
 };
