@@ -659,15 +659,79 @@ export default function Home() {
    * Valide la journée et enregistre les résultats dans l'historique
    * Sauvegarde le progrès quotidien et met à jour les statistiques
    */
-  const validerJournee = async () => {
-    try {
-      setLoadingAction(true);
-      
-      // Vérifier si l'utilisateur est connecté
-      if (!user) {
-        afficherNotification('Vous devez être connecté pour valider votre journée', 'error');
-        return;
-      }
+ const validerJournee = async () => {
+  try {
+    setLoadingAction(true);
+
+    if (!user) {
+      afficherNotification('Vous devez être connecté pour valider votre journée', 'error');
+      return;
+    }
+
+    const tachesTerminees = taches.filter(t => t.completed).length;
+
+    if (tachesTerminees === 0) {
+      afficherNotification('Complétez au moins une tâche avant de valider la journée', 'error');
+      setLoadingAction(false);
+      return;
+    }
+
+    const tauxReussite = Math.round((tachesTerminees / taches.length) * 100);
+    const note = Math.round((tauxReussite / 100) * 20);
+
+    let nouveauStreak = streak;
+    const dateDernierJour = historique.length > 0 ? new Date(historique[0].date) : null;
+    const aujourdhui = startOfDay(new Date());
+
+    if (!dateDernierJour || !isSameDay(addDays(dateDernierJour, 1), aujourdhui)) {
+      nouveauStreak = 1;
+    } else {
+      nouveauStreak += 1;
+    }
+
+    const donneesJournee = {
+      user_id: user.id,
+      date: new Date().toISOString(),
+      taches_terminees: tachesTerminees,
+      total_taches: taches.length,
+      taux_reussite: tauxReussite,
+      note: note,
+      points: pointsJour,
+      streak: nouveauStreak
+    };
+
+    const { error } = await supabase
+      .from('historique')
+      .insert([donneesJournee]);
+
+    if (error) {
+      throw new Error(`Erreur lors de l'enregistrement dans Supabase: ${error.message}`);
+    }
+
+    setStreak(nouveauStreak);
+    setPointsJour(0);
+
+    if (tauxReussite >= 80) {
+      setShowConfetti(true);
+    }
+
+    afficherNotification(`Journée validée ! Note: ${note}/20`, 'success');
+
+    await chargerHistorique(user.id);
+
+    setTaches(taches.map(t => ({
+      ...t,
+      etat: "",
+      completed: false
+    })));
+
+  } catch (error) {
+    console.error('Erreur lors de la validation de la journée:', error);
+    afficherNotification('Erreur lors de la validation de la journée: ' + error.message, 'error');
+  } finally {
+    setLoadingAction(false);
+  }
+};
       
       // Calculer le taux de réussite
       const tachesTerminees = taches.filter(t => t.completed).length;
