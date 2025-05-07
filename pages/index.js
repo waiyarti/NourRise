@@ -119,8 +119,6 @@ const tachesJournalieresInitiales = [
     rappel: true,
     heures: ["05:00", "19:00"]
   },
-  // ... Ajoutez toutes les autres tâches avec leurs détails
-
 ].map(t => ({ 
   ...t, 
   etat: "", 
@@ -137,12 +135,10 @@ export default function Home() {
   const [historique, setHistorique] = useState([]);
   const router = useRouter();
 
-  // Nouveaux états pour les fonctionnalités
   const [niveau, setNiveau] = useState(1);
   const [points, setPoints] = useState(0);
   const [notification, setNotification] = useState(null);
 
-  // Effets
   useEffect(() => {
     const verifierSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -157,7 +153,22 @@ export default function Home() {
   }, []);
 
   const validerJournee = async () => {
-    // Logique pour valider la journée
+    const nouvelleJournee = {
+      user_id: user.id,
+      date: new Date().toISOString(),
+      points,
+      taches: taches.map(t => ({
+        nom: t.nom,
+        etat: t.etat
+      })),
+    };
+
+    const { error } = await supabase.from("historique").insert([nouvelleJournee]);
+    if (error) {
+      console.error("Erreur lors de la validation");
+    } else {
+      setNotification({ message: "Journée validée avec succès !" });
+    }
   };
 
   const supprimerTache = (index) => {
@@ -172,7 +183,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* Ajout des nouvelles fonctionnalités ici */}
+      {/* Interface utilisateur avec fonctionnalités */}
     </div>
   );
 }
