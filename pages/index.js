@@ -861,7 +861,7 @@ export default function Home() {
           .from('taches_jour')
           .upsert({
             user_id: user.id,
-            date: aujourd'hui,
+            date: "aujourd'hui",
             taches: updated
           })
           .then(({ error }) => {
