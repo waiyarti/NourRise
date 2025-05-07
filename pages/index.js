@@ -797,13 +797,24 @@ export default function Home() {
     setLoadingAction(false);
   }
 };
-        .from('historique')
-        .insert([donneesJournee]);
-      
-      if (error) {
-        throw new Error(`Erreur lors de l'enregistrement dans Supabase: ${error.message}`);
-      }
-      
+       const validerJournee = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('historique')
+      .insert([donneesJournee]);
+
+    if (error) throw error;
+
+    afficherNotification(`Journée validée ! Note: ${note}/20`, 'success');
+    await chargerHistorique(user.id);
+    setTaches(taches.map(t => ({ ...t, completed: false })));
+  } catch (error) {
+    console.error('Erreur lors de la validation de la journée:', error);
+    afficherNotification('Erreur : ' + error.message, 'error');
+  } finally {
+    setLoadingAction(false);
+  }
+};
       // Mettre à jour les états
       setStreak(nouveauStreak);
       setPointsJour(0);
