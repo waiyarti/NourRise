@@ -776,7 +776,27 @@ export default function Home() {
       };
       
       // Enregistrer dans la base de données
-      const { data, error } = await supabase
+      const validerJournee = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('historique')
+      .insert([donneesJournee]);
+
+    afficherNotification(`Journée validée ! Note: ${note}/20`, 'success');
+
+    await chargerHistorique(user.id);
+
+    setTaches(taches.map(t => ({
+      ...t,
+      completed: false
+    })));
+  } catch (error) {
+    console.error('Erreur lors de la validation de la journée:', error);
+    afficherNotification('Erreur lors de la validation de la journée: ' + error.message, 'error');
+  } finally {
+    setLoadingAction(false);
+  }
+};
         .from('historique')
         .insert([donneesJournee]);
       
