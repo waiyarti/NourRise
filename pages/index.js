@@ -621,7 +621,7 @@ export default function Home() {
           setLoadingAction(true);
           
           // Mise à jour des tâches du jour dans Supabase
-          const aujourd'hui = format(new Date(), 'yyyy-MM-dd');
+          const aujourdhui = format(new Date(), 'yyyy-MM-dd');
           
           const { error } = await supabase
             .from('taches_jour')
