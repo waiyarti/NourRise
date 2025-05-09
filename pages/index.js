@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "../supabaseClient";
 import { useRouter } from "next/router";
@@ -6,20 +6,14 @@ import Head from "next/head";
 import {
   FiPlus,
   FiCheck,
-  FiFire,
-  FiCalendar,
   FiSun,
   FiMoon,
-  FiZap,
-  FiUser,
 } from "react-icons/fi";
 
-// Importation dynamique de composants lourds
 const GraphiqueEvolution = dynamic(() => import("../composants/GraphiqueEvolution"), { ssr: false });
 const GraphiqueNote = dynamic(() => import("../composants/GraphiqueNote"), { ssr: false });
 const confetti = dynamic(() => import("canvas-confetti"), { ssr: false });
 
-/** Définition des paliers de niveau */
 const NIVEAUX = [
   { niveau: 1, nom: "Débutant", requis: 0, icone: "🌱", couleur: "from-blue-400 to-blue-600", motivation: "Le début d'un beau voyage..." },
   { niveau: 2, nom: "Apprenti", requis: 100, icone: "🌿", couleur: "from-green-400 to-green-600", motivation: "Tu progresses bien !" },
@@ -27,7 +21,6 @@ const NIVEAUX = [
   { niveau: 4, nom: "Expert", requis: 600, icone: "🔥", couleur: "from-orange-500 to-red-600", motivation: "Tu inspires les autres." },
 ];
 
-/** Fonction utilitaire pour déterminer le niveau selon les points */
 const calculerNiveau = (points) => {
   for (let i = NIVEAUX.length - 1; i >= 0; i--) {
     if (points >= NIVEAUX[i].requis) return NIVEAUX[i];
@@ -47,9 +40,8 @@ export default function Home() {
   const [taches, setTaches] = useState([]);
   const [modeNuit, setModeNuit] = useState(false);
   const [notification, setNotification] = useState(null);
-  const [journal, setJournal] = useState([]); // Données des journées précédentes
+  const [journal, setJournal] = useState([]);
 
-  /** Initialisation : vérifie session + charge données Supabase */
   useEffect(() => {
     const init = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -57,14 +49,13 @@ export default function Home() {
 
       setUser(session.user);
 
-      // Charger les données de l'utilisateur
       const { data: entrees, error: errJours } = await supabase
-        .from("journees")
+        .from("journees") // ← Assure-toi que cette table existe dans Supabase
         .select("*")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (!errJours) {
+      if (!errJours && entrees) {
         setJournal(entrees);
         if (entrees.length > 0) {
           const dernier = entrees[0];
@@ -73,7 +64,6 @@ export default function Home() {
         }
       }
 
-      // Exemple de tâches du jour
       setTaches([
         { nom: "Réveil tôt", description: "Avant 6h", fait: false },
         { nom: "Sport", description: "15 min minimum", fait: false },
@@ -84,35 +74,28 @@ export default function Home() {
     };
     init();
   }, [router]);
-    /** Gestion de la validation de journée */
-  const validerJournee = async () => {
+    const validerJournee = async () => {
     try {
-      // Calcul de la réussite
       const total = taches.length;
       const accomplies = taches.filter((t) => t.fait).length;
       const taux = total > 0 ? Math.round((accomplies / total) * 100) : 0;
       const note = taux >= 80 ? 10 : taux >= 50 ? 7 : 5;
 
-      // Gestion du streak (vérifie la date précédente)
       let nouveauStreak = 1;
       if (journal.length > 0) {
-        const hier = new Date(journal[0].created_at);
+        const dernierJour = new Date(journal[0].created_at);
         const aujourdHui = new Date();
-        const diff = Math.floor((aujourdHui - hier) / (1000 * 60 * 60 * 24));
+        const diff = Math.floor((aujourdHui - dernierJour) / (1000 * 60 * 60 * 24));
         if (diff === 1) {
           nouveauStreak = journal[0].streak + 1;
         } else if (diff === 0) {
           return afficherNotification("Tu as déjà validé aujourd’hui !", "info");
-        } else {
-          nouveauStreak = 1;
         }
       }
 
-      // Mise à jour des points
       const nouveauxPoints = points + note * 10;
       const nouveauNiveau = calculerNiveau(nouveauxPoints);
 
-      // Enregistrement dans Supabase
       const { error } = await supabase.from("journees").insert([
         {
           user_id: user.id,
@@ -126,15 +109,16 @@ export default function Home() {
         },
       ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase :", error);
+        return setNotification({ message: "Erreur d'enregistrement dans Supabase", type: "error" });
+      }
 
-      // Mise à jour des états locaux
       setPoints(nouveauxPoints);
       setStreak(nouveauStreak);
       setNiveau(nouveauNiveau);
-      setNotification({ message: "Journée validée avec succès ! 🎉", type: "success" });
+      setNotification({ message: "Journée validée avec succès !", type: "success" });
 
-      // Confettis
       if (confetti) {
         confetti({
           particleCount: 100,
@@ -143,12 +127,11 @@ export default function Home() {
         });
       }
     } catch (err) {
-      console.error("Erreur validation :", JSON.stringify(err, null, 2));
-      setNotification({ message: "Erreur lors de la validation", type: "error" });
+      console.error("Erreur validation :", err);
+      setNotification({ message: "Erreur inattendue", type: "error" });
     }
   };
 
-  /** Affiche une notification temporaire */
   const afficherNotification = (message, type = "info") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
@@ -165,11 +148,12 @@ export default function Home() {
         <title>Weyzen - Discipline personnelle</title>
       </Head>
 
-      {/* HEADER */}
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-extrabold">Bienvenue, {user?.email || "Invité"}</h1>
-          <p className="text-sm text-gray-300">Niveau {niveau.niveau} — {niveau.nom} {niveau.icone}</p>
+          <p className="text-sm text-gray-300">
+            Niveau {niveau.niveau} — {niveau.nom} {niveau.icone}
+          </p>
           <p className="text-xs italic text-gray-200">{niveau.motivation}</p>
         </div>
         <button
@@ -180,7 +164,6 @@ export default function Home() {
         </button>
       </header>
 
-      {/* STATISTIQUES */}
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4">Tes Statistiques</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -199,7 +182,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TACHES */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Tâches du jour</h2>
         {taches.length > 0 ? (
@@ -239,7 +221,6 @@ export default function Home() {
         </button>
       </section>
 
-      {/* NOTIFICATION */}
       {notification && (
         <div
           className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl backdrop-blur-sm ${
