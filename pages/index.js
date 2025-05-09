@@ -59,7 +59,7 @@ export default function Home() {
 
       // Charger les données de l'utilisateur
       const { data: entrees, error: errJours } = await supabase
-        .from("votre_nom_table") // À remplacer par le nom réel de la table
+        .from("journees")
         .select("*")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
@@ -97,11 +97,15 @@ export default function Home() {
       let nouveauStreak = 1;
       if (journal.length > 0) {
         const hier = new Date(journal[0].created_at);
-        const aujourdhui = new Date();
-        const diff = Math.floor((aujourdhui - hier) / (1000 * 60 * 60 * 24));
-        if (diff === 1) nouveauStreak = journal[0].streak + 1;
-        else if (diff === 0) return afficherNotification("Tu as déjà validé aujourd’hui !", "info");
-        else nouveauStreak = 1;
+        const aujourdHui = new Date();
+        const diff = Math.floor((aujourdHui - hier) / (1000 * 60 * 60 * 24));
+        if (diff === 1) {
+          nouveauStreak = journal[0].streak + 1;
+        } else if (diff === 0) {
+          return afficherNotification("Tu as déjà validé aujourd’hui !", "info");
+        } else {
+          nouveauStreak = 1;
+        }
       }
 
       // Mise à jour des points
@@ -109,7 +113,7 @@ export default function Home() {
       const nouveauNiveau = calculerNiveau(nouveauxPoints);
 
       // Enregistrement dans Supabase
-      const { error } = await supabase.from("votre_nom_table").insert([
+      const { error } = await supabase.from("journees").insert([
         {
           user_id: user.id,
           note: note,
@@ -138,9 +142,8 @@ export default function Home() {
           origin: { y: 0.6 },
         });
       }
-
     } catch (err) {
-      console.error("Erreur validation :", err.message);
+      console.error("Erreur validation :", JSON.stringify(err, null, 2));
       setNotification({ message: "Erreur lors de la validation", type: "error" });
     }
   };
@@ -181,15 +184,15 @@ export default function Home() {
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4">Tes Statistiques</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass rounded-lg p-4 text-center">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 text-center">
             <p className="text-3xl font-bold">{points}</p>
-            <p className="text-sm">Points accumulés</p>
+            <p className="text-sm">Points</p>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 text-center">
             <p className="text-3xl font-bold">{streak}</p>
-            <p className="text-sm">Jours consécutifs</p>
+            <p className="text-sm">Streak</p>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 text-center">
             <p className="text-3xl font-bold">{niveau.niveau}</p>
             <p className="text-sm">Niveau</p>
           </div>
@@ -211,7 +214,9 @@ export default function Home() {
                   <p className="text-sm">{tache.description}</p>
                 </div>
                 <button
-                  className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600"
+                  className={`px-4 py-2 rounded-lg font-semibold transition ${
+                    tache.fait ? "bg-green-600" : "bg-gray-300 text-black"
+                  }`}
                   onClick={() => {
                     const maj = [...taches];
                     maj[index].fait = !maj[index].fait;
@@ -228,7 +233,7 @@ export default function Home() {
         )}
         <button
           onClick={validerJournee}
-          className="mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold shadow-lg"
+          className="mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold shadow-lg w-full"
         >
           Valider la journée
         </button>
@@ -238,7 +243,11 @@ export default function Home() {
       {notification && (
         <div
           className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl backdrop-blur-sm ${
-            notification.type === "success" ? "bg-green-500" : notification.type === "error" ? "bg-red-500" : "bg-blue-500"
+            notification.type === "success"
+              ? "bg-green-500"
+              : notification.type === "error"
+              ? "bg-red-500"
+              : "bg-blue-500"
           }`}
         >
           {notification.message}
