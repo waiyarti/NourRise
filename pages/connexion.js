@@ -1,270 +1,245 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { supabase } from "../supabaseClient";
-import { FiMail, FiLock, FiLoader, FiCheckCircle, FiMoon, FiSun } from "react-icons/fi";
-import Head from "next/head";
+import { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
+import { FiMail, FiLock, FiLogIn, FiUserPlus, FiAlertCircle } from 'react-icons/fi';
 
+/**
+ * Page de connexion/inscription à l'application
+ */
 export default function Connexion() {
-  const [email, setEmail] = useState("");
-  const [motdepasse, setMotdepasse] = useState("");
-  const [message, setMessage] = useState("");
-  const [chargement, setChargement] = useState(false);
-  const [mode, setMode] = useState("connexion");
-  const [theme, setTheme] = useState("light");
   const router = useRouter();
-
-  // Animation de fond
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({
-        x: e.clientX / window.innerWidth,
-        y: e.clientY / window.innerHeight,
-      });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
-  const validerEmail = (email) =>
-    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-
-  const handleSubmit = async (e) => {
+  
+  // États pour gérer le formulaire et les erreurs
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [erreur, setErreur] = useState(null);
+  const [mode, setMode] = useState('connexion'); // 'connexion' ou 'inscription'
+  
+  /**
+   * Gestion de la connexion utilisateur
+   */
+  const handleConnexion = async (e) => {
     e.preventDefault();
-    setMessage("");
-    setChargement(true);
-
-    if (!validerEmail(email)) {
-      setMessage("❌ Adresse email invalide.");
-      setChargement(false);
-      return;
-    }
-    if (motdepasse.length < 6) {
-      setMessage("❌ Mot de passe trop court (6 caractères minimum).");
-      setChargement(false);
-      return;
-    }
-
+    setLoading(true);
+    setErreur(null);
+    
     try {
-      if (mode === "inscription") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: motdepasse,
-        });
-        if (error) throw error;
-        setMessage("✅ Compte créé avec succès ! Vérifiez vos emails.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: motdepasse,
-        });
-        if (error) throw error;
-        setMessage("✅ Connexion réussie !");
-        setTimeout(() => router.push("/auth-check"), 1000);
+      // Validation basique des champs
+      if (!email.trim() || !password.trim()) {
+        throw new Error('Veuillez remplir tous les champs');
       }
-    } catch (err) {
-      setMessage("❌ " + err.message);
+      
+      if (mode === 'connexion') {
+        // Tentative de connexion avec Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        // Redirection vers la page d'accueil en cas de succès
+        router.push('/');
+      } else {
+        // Inscription avec Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        // Affichage d'un message de confirmation
+        setErreur({
+          type: 'success',
+          message: 'Votre compte a été créé! Vérifiez votre email pour confirmer votre inscription.'
+        });
+        
+        // Redirection vers l'accueil si pas de confirmation nécessaire
+        if (data?.session) {
+          router.push('/');
+        }
+      }
+    } catch (error) {
+      // Traduction des erreurs Supabase en français
+      let message = 'Une erreur est survenue';
+      
+      if (error.message.includes('Invalid login credentials')) {
+        message = 'Identifiants invalides';
+      } else if (error.message.includes('Email not confirmed')) {
+        message = 'Email non confirmé. Vérifiez votre boîte mail';
+      } else if (error.message.includes('User already registered')) {
+        message = 'Cet email est déjà utilisé';
+      } else if (error.message.includes('Password should be at least')) {
+        message = 'Le mot de passe doit contenir au moins 6 caractères';
+      } else {
+        message = error.message;
+      }
+      
+      setErreur({ type: 'error', message });
     } finally {
-      setChargement(false);
+      setLoading(false);
     }
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-12">
       <Head>
-        <title>{mode === "connexion" ? "Connexion" : "Inscription"} | NourRise</title>
-        <style jsx global>{`
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          
-          @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-          }
-
-          .animate-float {
-            animation: float 6s ease-in-out infinite;
-          }
-
-          .bg-pattern {
-            background-image: radial-gradient(circle at ${mousePosition.x * 100}% ${
-              mousePosition.y * 100
-            }%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
-          }
-        `}</style>
+        <title>{mode === 'connexion' ? 'Connexion' : 'Inscription'} | NourRise</title>
+        <meta name="description" content="Connectez-vous à NourRise pour suivre votre progression personnelle" />
       </Head>
-
-      <div className={`min-h-screen flex items-center justify-center transition-colors duration-500 ${
-        theme === "light" 
-          ? "bg-gradient-to-br from-purple-500 via-pink-500 to-red-500" 
-          : "bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
-      }`}>
-        {/* Motif d'arrière-plan dynamique */}
-        <div className="absolute inset-0 bg-pattern transition-opacity duration-500" />
-
-        {/* Illustrations flottantes */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-20 animate-float opacity-30">
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
-              <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="2"/>
-            </svg>
-          </div>
-          <div className="absolute bottom-20 right-20 animate-float opacity-30" style={{animationDelay: "-2s"}}>
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <rect x="20" y="20" width="40" height="40" stroke="white" strokeWidth="2"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* Card Container */}
-        <div className={`relative max-w-md w-full mx-4 transform transition-all duration-700 hover:scale-105 ${
-          theme === "light" 
-            ? "bg-white" 
-            : "bg-gray-800"
-        } p-10 rounded-3xl shadow-2xl`}>
-          
-          {/* Thème Toggle */}
-          <button
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            {theme === "light" ? (
-              <FiMoon className="w-5 h-5 text-gray-600" />
-            ) : (
-              <FiSun className="w-5 h-5 text-yellow-400" />
-            )}
-          </button>
-
-          {/* Logo animé */}
-          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 animate-pulse">
-            <div className={`w-full h-full rounded-full flex items-center justify-center shadow-lg ${
-              theme === "light" 
-                ? "bg-gradient-to-br from-blue-500 to-blue-700" 
-                : "bg-gradient-to-br from-purple-600 to-purple-800"
-            }`}>
-              <FiCheckCircle className="text-white text-4xl transform hover:rotate-180 transition-transform duration-500" />
-            </div>
-          </div>
-
-          {/* Titre et signature */}
-          <h1 className={`text-4xl font-extrabold text-center mb-2 ${
-            theme === "light" ? "text-gray-800" : "text-white"
-          }`}>
-            {mode === "connexion" ? "Bienvenue !" : "Inscription"}
-          </h1>
-          
-          <div className="text-center mb-2">
-            <span className="text-sm italic text-purple-600 dark:text-purple-400 font-light">
-              Créé avec passion par Wail
-            </span>
-          </div>
-
-          <p className={`text-center mb-6 ${
-            theme === "light" ? "text-gray-500" : "text-gray-300"
-          }`}>
-            {mode === "connexion"
-              ? "Découvrez votre espace personnel en toute sécurité."
-              : "Rejoignez notre communauté dès aujourd'hui !"}
+      
+      <div className="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8 text-white">
+          <h1 className="text-3xl font-bold mb-1">NourRise</h1>
+          <p className="text-indigo-100">
+            {mode === 'connexion' 
+              ? 'Connectez-vous pour accéder à votre tableau de bord' 
+              : 'Inscrivez-vous pour commencer votre parcours'}
           </p>
-
-          {/* Formulaire */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="relative group">
-              <FiMail className={`absolute left-3 top-3.5 group-hover:text-purple-500 transition-colors ${
-                theme === "light" ? "text-gray-400" : "text-gray-500"
-              }`} />
-              <input
-                type="email"
-                placeholder="Adresse email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={`w-full pl-10 pr-4 py-3 rounded-lg transition-all duration-300 ${
-                  theme === "light"
-                    ? "bg-white border focus:ring-2 focus:ring-purple-500 group-hover:border-purple-300"
-                    : "bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-purple-500 group-hover:border-purple-500"
-                }`}
-              />
+        </div>
+        
+        <div className="p-6">
+          {/* Affichage des erreurs ou messages de succès */}
+          {erreur && (
+            <div className={`p-3 mb-4 rounded-lg flex items-start ${
+              erreur.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              <FiAlertCircle className="mt-0.5 mr-2 flex-shrink-0" />
+              <span>{erreur.message}</span>
             </div>
-
-            <div className="relative group">
-              <FiLock className={`absolute left-3 top-3.5 group-hover:text-purple-500 transition-colors ${
-                theme === "light" ? "text-gray-400" : "text-gray-500"
-              }`} />
-              <input
-                type="password"
-                placeholder="Mot de passe"
-                value={motdepasse}
-                onChange={(e) => setMotdepasse(e.target.value)}
-                required
-                className={`w-full pl-10 pr-4 py-3 rounded-lg transition-all duration-300 ${
-                  theme === "light"
-                    ? "bg-white border focus:ring-2 focus:ring-purple-500 group-hover:border-purple-300"
-                    : "bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-purple-500 group-hover:border-purple-500"
-                }`}
-              />
+          )}
+          
+          <form onSubmit={handleConnexion} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Adresse email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="exemple@email.com"
+                  className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
             </div>
-
-            {/* Message avec animation */}
-            {message && (
-              <p className={`text-sm text-center animate-bounce ${
-                message.startsWith("✅") ? "text-green-600" : "text-red-600"
-              }`}>
-                {message}
-              </p>
-            )}
-
-            {/* Bouton amélioré */}
+            
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Mot de passe
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'connexion' ? '••••••••' : 'Minimum 6 caractères'}
+                  className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+            </div>
+            
             <button
               type="submit"
-              disabled={chargement}
-              className={`w-full py-3 rounded-lg font-semibold transform transition-all duration-300 
-                hover:scale-105 hover:shadow-lg disabled:opacity-60 relative overflow-hidden
-                ${theme === "light"
-                  ? "bg-gradient-to-r from-purple-600 to-purple-800 text-white"
-                  : "bg-gradient-to-r from-purple-500 to-purple-700 text-white"
-                }`}
+              disabled={loading}
+              className={`w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                loading ? 'opacity-70 cursor-wait' : ''
+              }`}
             >
-              {chargement ? (
-                <span className="flex items-center justify-center gap-2">
-                  <FiLoader className="animate-spin" />
-                  Chargement...
-                </span>
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin mr-2"></div>
+                  {mode === 'connexion' ? "Connexion en cours..." : "Inscription en cours..."}
+                </>
               ) : (
-                <span className="relative z-10">
-                  {mode === "connexion" ? "Se connecter" : "Créer un compte"}
-                </span>
+                <>
+                  {mode === 'connexion' ? <FiLogIn className="mr-2" /> : <FiUserPlus className="mr-2" />}
+                  {mode === 'connexion' ? 'Se connecter' : 'S\'inscrire'}
+                </>
               )}
             </button>
           </form>
-
-          {/* Toggle Mode */}
-          <p className={`text-center mt-6 text-sm ${
-            theme === "light" ? "text-gray-600" : "text-gray-300"
-          }`}>
-            {mode === "connexion" ? "Pas encore de compte ? " : "Déjà inscrit ? "}
-            <span
-              className="text-purple-500 font-semibold hover:underline cursor-pointer transition-colors duration-300 hover:text-purple-700"
-              onClick={() => setMode(mode === "connexion" ? "inscription" : "connexion")}
-            >
-              {mode === "connexion" ? "Inscrivez-vous" : "Connectez-vous"}
-            </span>
-          </p>
-
-          {/* Footer amélioré */}
-          <div className={`text-xs mt-6 text-center ${
-            theme === "light" ? "text-gray-400" : "text-gray-500"
-          }`}>
-            <p>© 2025 NourRise | Créé avec ❤️ par Wail</p>
-            <p className="mt-1">Sécurité et confiance, propulsé par Supabase</p>
+          
+          <div className="mt-4 text-center">
+            {mode === 'connexion' ? (
+              <p className="text-sm text-gray-600">
+                Pas encore de compte ? {' '}
+                <button
+                  onClick={() => {
+                    setMode('inscription');
+                    setErreur(null);
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  S'inscrire
+                </button>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600">
+                Déjà un compte ? {' '}
+                <button
+                  onClick={() => {
+                    setMode('connexion');
+                    setErreur(null);
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  Se connecter
+                </button>
+              </p>
+            )}
           </div>
+          
+          {/* Aide pour la récupération de mot de passe */}
+          {mode === 'connexion' && (
+            <div className="mt-2 text-center">
+              <button 
+                onClick={async () => {
+                  if (!email.trim()) {
+                    setErreur({ type: 'error', message: 'Veuillez saisir votre email' });
+                    return;
+                  }
+                  
+                  setLoading(true);
+                  try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    
+                    if (error) throw error;
+                    
+                    setErreur({ 
+                      type: 'success', 
+                      message: 'Instructions envoyées par email pour réinitialiser votre mot de passe' 
+                    });
+                  } catch (error) {
+                    setErreur({ type: 'error', message: error.message });
+                  }
+                  setLoading(false);
+                }}
+                className="text-xs text-indigo-600 hover:text-indigo-800"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
