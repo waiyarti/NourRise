@@ -3,12 +3,7 @@ import dynamic from "next/dynamic";
 import { supabase } from "../supabaseClient";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import {
-  FiPlus,
-  FiCheck,
-  FiSun,
-  FiMoon,
-} from "react-icons/fi";
+import { FiPlus, FiCheck, FiSun, FiMoon } from "react-icons/fi";
 
 const GraphiqueEvolution = dynamic(() => import("../composants/GraphiqueEvolution"), { ssr: false });
 const GraphiqueNote = dynamic(() => import("../composants/GraphiqueNote"), { ssr: false });
@@ -30,10 +25,8 @@ const calculerNiveau = (points) => {
 
 export default function Home() {
   const router = useRouter();
-
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [niveau, setNiveau] = useState(NIVEAUX[0]);
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -50,7 +43,7 @@ export default function Home() {
       setUser(session.user);
 
       const { data: entrees, error: errJours } = await supabase
-        .from("journees") // ← Assure-toi que cette table existe dans Supabase
+        .from("journal")
         .select("*")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
@@ -74,7 +67,8 @@ export default function Home() {
     };
     init();
   }, [router]);
-    const validerJournee = async () => {
+
+  const validerJournee = async () => {
     try {
       const total = taches.length;
       const accomplies = taches.filter((t) => t.fait).length;
@@ -96,12 +90,12 @@ export default function Home() {
       const nouveauxPoints = points + note * 10;
       const nouveauNiveau = calculerNiveau(nouveauxPoints);
 
-      const { error } = await supabase.from("journees").insert([
+      const { error } = await supabase.from("journal").insert([
         {
           user_id: user.id,
-          note: note,
+          note,
           taux_reussite: taux,
-          taches: JSON.stringify(taches),
+          taches: taches,
           created_at: new Date().toISOString(),
           nom_utilisateur: user.email,
           streak: nouveauStreak,
@@ -110,7 +104,7 @@ export default function Home() {
       ]);
 
       if (error) {
-        console.error("Erreur Supabase :", error);
+        console.error("❌ Erreur Supabase :", error.message || error);
         return setNotification({ message: "Erreur d'enregistrement dans Supabase", type: "error" });
       }
 
@@ -127,7 +121,7 @@ export default function Home() {
         });
       }
     } catch (err) {
-      console.error("Erreur validation :", err);
+      console.error("❌ Erreur validation :", err);
       setNotification({ message: "Erreur inattendue", type: "error" });
     }
   };
@@ -136,7 +130,8 @@ export default function Home() {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
   };
-    return (
+
+  return (
     <div
       className={`min-h-screen px-4 py-6 transition-all duration-300 ${
         modeNuit
