@@ -7,7 +7,6 @@ import { FiPlus, FiCheck, FiSun, FiMoon } from "react-icons/fi";
 
 const GraphiqueEvolution = dynamic(() => import("../composants/GraphiqueEvolution"), { ssr: false });
 const GraphiqueNote = dynamic(() => import("../composants/GraphiqueNote"), { ssr: false });
-const confetti = dynamic(() => import("canvas-confetti"), { ssr: false });
 
 const NIVEAUX = [
   { niveau: 1, nom: "Débutant", requis: 0, icone: "🌱", couleur: "from-blue-400 to-blue-600", motivation: "Le début d'un beau voyage..." },
@@ -21,6 +20,15 @@ const calculerNiveau = (points) => {
     if (points >= NIVEAUX[i].requis) return NIVEAUX[i];
   }
   return NIVEAUX[0];
+};
+
+const lancerConfettis = async () => {
+  const confetti = (await import("canvas-confetti")).default;
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 },
+  });
 };
 
 export default function Home() {
@@ -95,7 +103,7 @@ export default function Home() {
           user_id: user.id,
           note,
           taux_reussite: taux,
-          taches: taches,
+          taches,
           created_at: new Date().toISOString(),
           nom_utilisateur: user.email,
           streak: nouveauStreak,
@@ -113,13 +121,7 @@ export default function Home() {
       setNiveau(nouveauNiveau);
       setNotification({ message: "Journée validée avec succès !", type: "success" });
 
-      if (confetti) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      }
+      await lancerConfettis();
     } catch (err) {
       console.error("❌ Erreur validation :", err);
       setNotification({ message: "Erreur inattendue", type: "error" });
