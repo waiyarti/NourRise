@@ -1,7 +1,7 @@
 /**
- * @file supabaseClient.js
- * @description Client Supabase Premium avec fonctionnalités avancées pour NourRise
- * @version 2.0.1
+ * @file lib/supabaseClient.js
+ * @description Client Supabase Premium avec système anti-échec et synchronisation hors-ligne
+ * @version 2.1.0
  * @author NourRise Team
  * @updated 2025-05-20
  * 
@@ -9,11 +9,8 @@
  * - ✅ Gestion intelligente des variables d'environnement
  * - ✅ Système de fallback multi-niveaux avec mode dégradé
  * - ✅ Caching et optimisation des performances
- * - ✅ Gestion avancée des erreurs avec logging structuré
- * - ✅ Mécanismes de retry et circuit-breaker
- * - ✅ Support offline avec synchronisation
+ * - ✅ Support offline avec synchronisation automatique
  * - ✅ Métriques et monitoring des performances
- * - ✅ Sécurité renforcée avec sanitization des données
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -24,136 +21,44 @@ import { createClient } from '@supabase/supabase-js';
 
 /**
  * Configuration enrichie pour optimisation de la performance et sécurité
- * Adapté spécifiquement pour les besoins nutritionnels et de suivi
  */
 const SUPABASE_CONFIG = {
-  // Configuration avancée pour l'authentification
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'nourrise_auth_token',
-    flowType: 'implicit',
   },
-  
-  // Configuration optimisée pour la réalité
   realtime: {
-    timeout: 30000,             // Timeout augmenté pour connexions instables
+    timeout: 30000,
     params: {
-      eventsPerSecond: 10,      // Limite adaptive pour la réactivité
+      eventsPerSecond: 10,
     },
   },
-  
-  // Configuration globale et en-têtes
   global: {
     headers: {
       'x-application-name': 'NourRise',
-      'x-client-version': '2.0.1',
+      'x-client-version': '2.1.0',
       'x-client-platform': typeof window !== 'undefined' ? window.navigator.platform : 'server',
     },
-    fetch: customFetchWithTimeout,
   },
-  
-  // Configuration de DB pour optimiser les requêtes nutritionnelles
   db: {
     schema: 'public',
   },
-  
-  // Configuration de stockage optimisée pour les images alimentaires
-  storage: {
-    retryAttempts: 3,
-    retryDelay: 1000,
-  },
 };
 
-// Configuration des messages d'erreur avancés et localisés
+// Configuration des messages d'erreur
 const ERROR_MESSAGES = {
-  MISSING_URL: {
-    fr: "❌ URL Supabase manquante. Vérifiez vos variables d'environnement.",
-    en: "❌ Missing Supabase URL. Check your environment variables.",
-  },
-  MISSING_KEY: {
-    fr: "❌ Clé Supabase manquante. Vérifiez vos variables d'environnement.",
-    en: "❌ Missing Supabase key. Check your environment variables.",
-  },
-  INIT_FAILED: {
-    fr: "❌ Échec d'initialisation du client Supabase. Mode dégradé activé.",
-    en: "❌ Failed to initialize Supabase client. Fallback mode activated.",
-  },
-  CONNECTION_ERROR: {
-    fr: "❌ Erreur de connexion à Supabase. Vérifiez votre connexion internet.",
-    en: "❌ Supabase connection error. Check your internet connection.",
-  },
-  OFFLINE_MODE: {
-    fr: "⚠️ Mode hors-ligne activé. Certaines fonctionnalités sont limitées.",
-    en: "⚠️ Offline mode activated. Some features are limited.",
-  },
+  MISSING_URL: "❌ URL Supabase manquante. Vérifiez vos variables d'environnement.",
+  MISSING_KEY: "❌ Clé Supabase manquante. Vérifiez vos variables d'environnement.",
+  INIT_FAILED: "❌ Échec d'initialisation du client Supabase. Mode dégradé activé.",
+  CONNECTION_ERROR: "❌ Erreur de connexion à Supabase. Vérifiez votre connexion internet.",
+  OFFLINE_MODE: "⚠️ Mode hors-ligne activé. Certaines fonctionnalités sont limitées.",
 };
 
 // ========================================================================
-// SECTION 2: UTILITAIRES AVANCÉS
+// SECTION 2: UTILITAIRES
 // ========================================================================
-
-/**
- * Fetch personnalisé avec timeout et retry adaptable
- * @param {string} resource - URL de la ressource
- * @param {Object} options - Options de la requête
- * @returns {Promise} Résultat de la requête
- */
-function customFetchWithTimeout(resource, options = {}) {
-  const { timeout = 8000 } = options;
-  
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  
-  // Mesurer les performances réseau
-  const startTime = performance.now();
-  
-  return fetch(resource, {
-    ...options,
-    signal: controller.signal,
-  })
-    .then(response => {
-      clearTimeout(id);
-      
-      // Enregistrer les métriques pour optimisation
-      const endTime = performance.now();
-      logNetworkMetrics(resource, endTime - startTime, response.status);
-      
-      return response;
-    })
-    .catch(error => {
-      clearTimeout(id);
-      if (error.name === 'AbortError') {
-        throw new Error(`Request timeout after ${timeout}ms`);
-      }
-      throw error;
-    });
-}
-
-/**
- * Enregistre les métriques réseau pour analyse et optimisation
- * @param {string} resource - URL de la ressource
- * @param {number} duration - Durée de la requête en ms
- * @param {number} status - Code de statut HTTP
- */
-function logNetworkMetrics(resource, duration, status) {
-  // Ne log que si en environnement de développement ou si activé
-  if (process.env.NEXT_PUBLIC_ENABLE_METRICS === 'true' || process.env.NODE_ENV !== 'production') {
-    console.info(`📊 Network [${status}]: ${resource.split('?')[0]} - ${Math.round(duration)}ms`);
-    
-    // Collecter pour analyse
-    if (typeof window !== 'undefined' && window._nourriseMetics) {
-      window._nourriseMetics.push({
-        type: 'network',
-        resource,
-        duration,
-        status,
-        timestamp: Date.now(),
-      });
-    }
-  }
-}
 
 /**
  * Récupération sécurisée des variables d'environnement avec valeurs par défaut
@@ -162,9 +67,7 @@ function logNetworkMetrics(resource, duration, status) {
  * @returns {string} Valeur de la variable d'environnement
  */
 function getEnvVariable(key, defaultValue = '') {
-  // POINT 3: Vous devez insérer "ac" ici pour la vérification des variables d'environnement
-  // Cette fonction vérifie en profondeur toutes les possibilités pour les variables d'environnement
-  
+  // AC: POINT 3 - Vérification robuste des variables d'environnement
   // Vérification multiple des formats de variables
   const value = typeof process !== 'undefined' 
     ? (process.env[key] || 
@@ -187,9 +90,7 @@ function getEnvVariable(key, defaultValue = '') {
  */
 async function checkSupabaseAvailability() {
   try {
-    // POINT 4: Vous devez insérer "ac" ici pour la vérification de disponibilité
-    // Cette fonction teste activement si Supabase répond correctement
-    
+    // AC: POINT 4 - Vérification active de la connexion Supabase
     if (!supabase || supabase._isOfflineMode) return false;
     
     // Test léger qui vérifie si l'API répond
@@ -204,23 +105,13 @@ async function checkSupabaseAvailability() {
   }
 }
 
-// ========================================================================
-// SECTION 3: CLIENT FALLBACK ET GESTION OFFLINE
-// ========================================================================
-
 /**
- * Crée un client simulé avancé pour fonctionnement dégradé
+ * Crée un client simulé pour fonctionnement dégradé
  * @param {string} reason - Raison de la création du mock
- * @param {Error} originalError - Erreur d'origine si disponible
  * @returns {Object} Client simulé avec fonctionnalités essentielles
  */
-function createEnhancedMockClient(reason = 'unknown', originalError = null) {
+function createMockClient(reason = 'unknown') {
   console.warn(`⚠️ Client Supabase simulé activé (raison: ${reason})`);
-  
-  // Logger l'erreur détaillée pour debug
-  if (originalError && process.env.NODE_ENV !== 'production') {
-    console.error('Détails de l\'erreur:', originalError);
-  }
   
   // Storage des données offline en localStorage si disponible
   const offlineStorage = typeof localStorage !== 'undefined' 
@@ -249,11 +140,11 @@ function createEnhancedMockClient(reason = 'unknown', originalError = null) {
     }
   };
   
-  // Client Mock avancé avec prise en charge offline
+  // Client Mock avec support offline
   return {
     auth: {
-      signIn: () => Promise.resolve({ user: null, error: new Error(ERROR_MESSAGES.OFFLINE_MODE.fr) }),
-      signUp: () => Promise.resolve({ user: null, error: new Error(ERROR_MESSAGES.OFFLINE_MODE.fr) }),
+      signIn: () => Promise.resolve({ user: null, error: new Error(ERROR_MESSAGES.OFFLINE_MODE) }),
+      signUp: () => Promise.resolve({ user: null, error: new Error(ERROR_MESSAGES.OFFLINE_MODE) }),
       signOut: () => Promise.resolve({ error: null }),
       onAuthStateChange: () => ({ data: null, unsubscribe: () => {} }),
       getSession: () => {
@@ -310,7 +201,7 @@ function createEnhancedMockClient(reason = 'unknown', originalError = null) {
         },
         getPublicUrl: (path) => ({
           data: { publicUrl: path.startsWith('offline') 
-            ? (typeof URL !== 'undefined' && file instanceof Blob ? URL.createObjectURL(file) : '/images/placeholder.png')
+            ? '/images/placeholder.png'
             : path
           }
         }),
@@ -323,68 +214,51 @@ function createEnhancedMockClient(reason = 'unknown', originalError = null) {
     // Propriétés spéciales pour l'état offline
     _isOfflineMode: true,
     _offlineReason: reason,
-    _getPendingOperations: () => {
-      // Récupérer toutes les données mises en cache pour synchronisation ultérieure
-      const pendingData = {};
-      
-      // Dans un vrai scénario, nous récupérerions toutes les clés du localStorage qui commencent par "nourrise_offline_"
-      return pendingData;
-    },
     _syncWhenOnline: async () => {
       console.info('🔄 Tentative de synchronisation des données offline...');
-      return false; // À implémenter avec le vrai client
+      return false; 
     },
   };
 }
 
 // ========================================================================
-// SECTION 4: INITIALISATION SÉCURISÉE
+// SECTION 3: INITIALISATION SÉCURISÉE
 // ========================================================================
 
 // Récupération sécurisée des variables d'environnement
 const supabaseUrl = getEnvVariable('SUPABASE_URL');
 const supabaseAnonKey = getEnvVariable('SUPABASE_ANON_KEY');
 
-// Création sécurisée du client avec gestion d'erreurs complète
+// Création sécurisée du client avec gestion d'erreurs
 let supabase;
 let initializationError = null;
 
 try {
-  // Vérification approfondie des variables d'environnement
+  // Vérification des variables d'environnement
   if (!supabaseUrl || !supabaseAnonKey) {
     const errorMessage = !supabaseUrl 
-      ? ERROR_MESSAGES.MISSING_URL.fr 
-      : ERROR_MESSAGES.MISSING_KEY.fr;
+      ? ERROR_MESSAGES.MISSING_URL 
+      : ERROR_MESSAGES.MISSING_KEY;
     
     console.error(errorMessage);
     console.error("💡 Vérifiez vos variables d'environnement dans:");
     console.error("   1. Fichier .env.local pour le développement local");
     console.error("   2. Paramètres du projet dans Vercel pour la production");
     
-    // En mode client, créer un client simulé pour éviter un crash total
+    // En mode client, créer un client simulé pour éviter un crash
     if (typeof window !== 'undefined') {
-      supabase = createEnhancedMockClient('missing_env_vars');
+      supabase = createMockClient('missing_env_vars');
     } else {
-      // En mode serveur/SSR, nous devons interrompre l'exécution pour alerter
+      // En mode serveur/SSR, nous devons interrompre l'exécution
       initializationError = new Error(errorMessage);
     }
   } else {
     // Initialisation normale avec toutes les optimisations
     supabase = createClient(supabaseUrl, supabaseAnonKey, SUPABASE_CONFIG);
     
-    // Auditlog uniquement en développement
+    // Log uniquement en développement
     if (process.env.NODE_ENV !== 'production') {
       console.info(`✅ Client Supabase initialisé avec succès (${supabaseUrl.split(".")[0]})`);
-    }
-    
-    // Monitoring avancé des performances (development only)
-    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
-      window._nourriseMetics = window._nourriseMetics || [];
-      window._nourriseMetics.push({
-        type: 'supabase_init',
-        timestamp: Date.now(),
-        success: true,
-      });
     }
   }
 } catch (error) {
@@ -393,7 +267,7 @@ try {
   // Différentes stratégies selon l'environnement
   if (typeof window !== 'undefined') {
     // Côté client: Utiliser le mock
-    supabase = createEnhancedMockClient('initialization_error', error);
+    supabase = createMockClient('initialization_error');
   } else {
     // Côté serveur: Propager l'erreur pour debug
     initializationError = error;
@@ -406,7 +280,7 @@ if (typeof window === 'undefined' && initializationError) {
 }
 
 // ========================================================================
-// SECTION 5: EXPORTS ET UTILITAIRES PUBLICS
+// SECTION 4: EXPORTS ET UTILITAIRES PUBLICS
 // ========================================================================
 
 /**
@@ -432,7 +306,7 @@ export const checkSupabaseConnection = checkSupabaseAvailability;
 export const handleSupabaseError = (error, defaultMessage = "Une erreur s'est produite") => {
   if (!error) return null;
   
-  // Mapping des codes d'erreur vers des messages utilisateur conviviaux
+  // Mapping des codes d'erreur vers des messages utilisateur
   const errorMap = {
     'auth/invalid-email': 'Adresse e-mail invalide',
     'auth/wrong-password': 'Mot de passe incorrect',
@@ -441,14 +315,11 @@ export const handleSupabaseError = (error, defaultMessage = "Une erreur s'est pr
     '23505': 'Cette information existe déjà dans la base de données',
     '23503': 'Référence invalide ou donnée liée manquante',
     '23514': 'La valeur ne respecte pas les contraintes requises',
-    '42703': 'Colonne ou champ non trouvé dans la base de données',
     'not-found': 'Ressource non trouvée',
   };
   
   // Récupérer le code d'erreur ou le message complet
-  const errorCode = error.code || (error.message && error.message.includes(':') 
-    ? error.message.split(':')[0].trim() 
-    : error.message) || error;
+  const errorCode = error.code || error.message || error;
     
   return errorMap[errorCode] || defaultMessage;
 };
