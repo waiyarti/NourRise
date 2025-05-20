@@ -1,154 +1,426 @@
-import React, { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+/**
+ * @file composants/GraphiqueRepartition.js
+ * @description Composant avancé de visualisation de données nutritionnelles
+ * @version 1.0.0
+ * 
+ * Fonctionnalités:
+ * - Visualisation interactive des données
+ * - Multiples types de graphiques (camembert, ligne, barre)
+ * - Animations fluides et transitions élégantes
+ * - Support du mode sombre/clair
+ * - Génération de données de démonstration
+ * - Gestion élégante des cas vides
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Sector,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area
+} from 'recharts';
 
 /**
- * Composant de graphique visualisant la répartition des tâches accomplies vs restantes
- * @param {Object[]} taches - Liste des tâches
- * @param {number} total - Nombre total de tâches
- * @param {number} faites - Nombre de tâches accomplies
+ * Composant de visualisation de données nutritionnelles avancé
+ * 
+ * @param {Object} props - Propriétés du composant
+ * @param {Array} props.donnees - Données à visualiser [{name: string, value: number}]
+ * @param {string} props.titre - Titre du graphique
+ * @param {string} props.typeDonnees - Type de données (nutrition, activites, etc)
+ * @param {string} props.type - Type de graphique (pie, line, area)
+ * @param {number} props.hauteur - Hauteur du graphique en pixels
+ * @param {boolean} props.modeSombre - Activer le mode sombre
+ * @param {boolean} props.animationActive - Activer les animations
+ * @param {boolean} props.afficherLegende - Afficher la légende
+ * @returns {JSX.Element} Composant de visualisation
  */
-const GraphiqueRepartition = ({ taches = [], total = 0, faites = 0 }) => {
-  // Préparation des données pour le graphique
-  const donnees = useMemo(() => {
-    // Si pas de tâches, retourner un jeu de données vide
-    if (!taches || taches.length === 0) {
-      return [
-        { name: 'Aucune tâche', value: 1, color: '#6b7280' }
-      ];
+const GraphiqueRepartition = ({ 
+  donnees = [],
+  titre = "Répartition nutritionnelle",
+  typeDonnees = "nutrition",
+  type = "pie",
+  hauteur = 400,
+  modeSombre = false,
+  animationActive = true,
+  afficherLegende = true
+}) => {
+  // États du composant
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [typeGraphique, setTypeGraphique] = useState(type);
+  const [donneesTraitees, setDonneesTraitees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Palette de couleurs adaptative selon le mode (sombre/clair)
+  const COLORS = modeSombre 
+    ? ['#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc', '#e879f9', '#f472b6'] 
+    : ['#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899'];
+  
+  // Styles adaptés au mode
+  const styles = {
+    container: `w-full p-4 rounded-xl shadow-lg ${
+      modeSombre ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'
+    }`,
+    title: `text-xl font-bold mb-4 ${
+      modeSombre ? 'text-gray-100' : 'text-gray-800'
+    }`,
+    chartGrid: modeSombre ? '#4b5563' : '#e2e8f0',
+    tooltip: {
+      backgroundColor: modeSombre ? '#1f2937' : '#fff',
+      borderColor: modeSombre ? '#4b5563' : '#e2e8f0',
+      textColor: modeSombre ? '#e2e8f0' : '#334155'
     }
+  };
 
-    // Calcul des points potentiels par coefficient
-    const pointsParCoefficient = [0, 0, 0]; // indices 0, 1, 2 pour coefficients 1, 2, 3
-    const pointsFaitsParCoefficient = [0, 0, 0];
+  // Préparation des données à l'initialisation et lors des changements
+  useEffect(() => {
+    setIsLoading(true);
     
-    taches.forEach(tache => {
-      const coef = (tache.coefficient || 1) - 1; // 0-indexed
-      pointsParCoefficient[coef] += 1;
-      if (tache.fait) {
-        pointsFaitsParCoefficient[coef] += 1;
+    // Simulation d'un chargement asynchrone
+    setTimeout(() => {
+      if (!donnees || donnees.length === 0) {
+        // Générer des données de démonstration si aucune donnée n'est fournie
+        const demoData = generateDemoData(typeDonnees);
+        setDonneesTraitees(demoData);
+      } else {
+        // Ajouter des couleurs aux données si elles n'en ont pas
+        const dataWithColors = donnees.map((item, index) => ({
+          ...item,
+          color: item.color || COLORS[index % COLORS.length]
+        }));
+        setDonneesTraitees(dataWithColors);
       }
-    });
-    
-    const result = [];
-    
-    // Ajouter les tâches faites par coefficient
-    if (pointsFaitsParCoefficient[0] > 0) {
-      result.push({ 
-        name: 'Tâches standards faites', 
-        value: pointsFaitsParCoefficient[0], 
-        color: '#22c55e'  // Vert 
-      });
+      
+      setIsLoading(false);
+    }, 800);
+  }, [donnees, typeDonnees, COLORS]);
+  
+  // Générer des données de démonstration selon le type
+  const generateDemoData = (type) => {
+    switch(type) {
+      case 'nutrition':
+        return [
+          { name: 'Protéines', value: 25, color: COLORS[0] },
+          { name: 'Glucides', value: 45, color: COLORS[1] },
+          { name: 'Lipides', value: 20, color: COLORS[2] },
+          { name: 'Fibres', value: 10, color: COLORS[3] }
+        ];
+      case 'activites':
+        return [
+          { name: 'Cardio', value: 35, color: COLORS[0] },
+          { name: 'Musculation', value: 25, color: COLORS[1] },
+          { name: 'Étirements', value: 15, color: COLORS[2] },
+          { name: 'Marche', value: 25, color: COLORS[3] }
+        ];
+      case 'repartition_calorique':
+        return [
+          { name: 'Petit-déjeuner', value: 20, color: COLORS[0] },
+          { name: 'Déjeuner', value: 40, color: COLORS[1] },
+          { name: 'Goûter', value: 10, color: COLORS[2] },
+          { name: 'Dîner', value: 30, color: COLORS[3] }
+        ];
+      default:
+        return [
+          { name: 'Catégorie 1', value: 30, color: COLORS[0] },
+          { name: 'Catégorie 2', value: 30, color: COLORS[1] },
+          { name: 'Catégorie 3', value: 40, color: COLORS[2] }
+        ];
     }
-    
-    if (pointsFaitsParCoefficient[1] > 0) {
-      result.push({ 
-        name: 'Tâches importantes faites', 
-        value: pointsFaitsParCoefficient[1], 
-        color: '#16a34a'  // Vert foncé
-      });
-    }
-    
-    if (pointsFaitsParCoefficient[2] > 0) {
-      result.push({ 
-        name: 'Tâches critiques faites', 
-        value: pointsFaitsParCoefficient[2], 
-        color: '#15803d'  // Vert très foncé
-      });
-    }
-    
-    // Ajouter les tâches non faites par coefficient
-    if (pointsParCoefficient[0] - pointsFaitsParCoefficient[0] > 0) {
-      result.push({ 
-        name: 'Tâches standards à faire', 
-        value: pointsParCoefficient[0] - pointsFaitsParCoefficient[0], 
-        color: '#ef4444'  // Rouge
-      });
-    }
-    
-    if (pointsParCoefficient[1] - pointsFaitsParCoefficient[1] > 0) {
-      result.push({ 
-        name: 'Tâches importantes à faire', 
-        value: pointsParCoefficient[1] - pointsFaitsParCoefficient[1], 
-        color: '#dc2626'  // Rouge foncé
-      });
-    }
-    
-    if (pointsParCoefficient[2] - pointsFaitsParCoefficient[2] > 0) {
-      result.push({ 
-        name: 'Tâches critiques à faire', 
-        value: pointsParCoefficient[2] - pointsFaitsParCoefficient[2], 
-        color: '#b91c1c'  // Rouge très foncé
-      });
-    }
-    
-    return result;
-  }, [taches]);
+  };
 
-  // Si aucune tâche, afficher un message
-  if (!taches || taches.length === 0) {
+  // Gestionnaires d'événements pour le camembert
+  const onPieEnter = useCallback((_, index) => {
+    setActiveIndex(index);
+  }, []);
+  
+  const onPieLeave = useCallback(() => {
+    setActiveIndex(null);
+  }, []);
+
+  // Rendu du segment actif du camembert
+  const renderActiveShape = (props) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+    
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-4">
-        <p className="text-lg font-medium">Aucune tâche disponible</p>
-        <p className="text-sm text-gray-400 mt-2">
-          Ajoute tes premières tâches pour voir leur répartition!
+      <g>
+        <text x={cx} y={cy - 20} textAnchor="middle" fill={modeSombre ? '#e2e8f0' : '#334155'}>
+          {payload.name}
+        </text>
+        <text x={cx} y={cy + 5} textAnchor="middle" fill={modeSombre ? '#e2e8f0' : '#334155'} className="text-lg font-bold">
+          {value}
+          <tspan className="text-sm font-normal">
+            {typeDonnees === 'nutrition' ? ' kcal' : ''}
+          </tspan>
+        </text>
+        <text x={cx} y={cy + 30} textAnchor="middle" fill={modeSombre ? '#94a3b8' : '#64748b'}>
+          {`${(percent * 100).toFixed(1)}%`}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 10}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          strokeWidth={2}
+          stroke={modeSombre ? '#1f2937' : '#ffffff'}
+        />
+      </g>
+    );
+  };
+
+  // Formatage des éléments du tooltip
+  const formatTooltip = (value, name) => {
+    const unit = typeDonnees === 'nutrition' ? ' kcal' : '';
+    return [`${value}${unit}`, name];
+  };
+
+  // Rendu de l'état de chargement
+  if (isLoading) {
+    return (
+      <div className={`w-full h-${hauteur} flex items-center justify-center ${
+        modeSombre ? 'bg-gray-800 text-gray-200' : 'bg-gray-50 text-gray-800'
+      } rounded-lg`}>
+        <svg className="animate-spin h-8 w-8 text-blue-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="text-lg font-medium">Chargement du graphique...</span>
+      </div>
+    );
+  }
+
+  // Rendu pour données vides
+  if (!donneesTraitees.length) {
+    return (
+      <div className={`w-full h-${hauteur} flex flex-col items-center justify-center ${
+        modeSombre ? 'bg-gray-800 text-gray-200' : 'bg-gray-50 text-gray-800'
+      } rounded-lg`}>
+        <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 className="text-lg font-medium mb-2">Aucune donnée disponible</h3>
+        <p className="text-sm text-gray-500 max-w-md text-center">
+          Ajoutez des données pour voir apparaître le graphique de répartition.
         </p>
       </div>
     );
   }
 
-  // Calcul du taux de complétion pour l'affichage central
-  const tauxCompletion = total > 0 ? Math.round((faites / total) * 100) : 0;
+  // Rendu du graphique selon le type
+  const renderGraph = () => {
+    switch (typeGraphique) {
+      case 'pie':
+        return (
+          <ResponsiveContainer width="100%" height={hauteur}>
+            <PieChart>
+              <Pie
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                data={donneesTraitees}
+                cx="50%"
+                cy="50%"
+                innerRadius={hauteur / 5}
+                outerRadius={hauteur / 3}
+                dataKey="value"
+                onMouseEnter={onPieEnter}
+                onMouseLeave={onPieLeave}
+                animationDuration={animationActive ? 1000 : 0}
+                animationBegin={0}
+              >
+                {donneesTraitees.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.color || COLORS[index % COLORS.length]} 
+                    stroke={modeSombre ? '#1f2937' : '#ffffff'}
+                    strokeWidth={2}
+                  />
+                ))}
+              </Pie>
+              {afficherLegende && (
+                <Legend 
+                  verticalAlign="bottom" 
+                  align="center"
+                  layout="horizontal"
+                  iconType="circle"
+                  iconSize={10}
+                  wrapperStyle={{ 
+                    paddingTop: 20,
+                    color: modeSombre ? '#e2e8f0' : '#334155',
+                    fontSize: '0.875rem',
+                    fontWeight: 500
+                  }} 
+                />
+              )}
+              <Tooltip 
+                formatter={formatTooltip}
+                contentStyle={{ 
+                  backgroundColor: styles.tooltip.backgroundColor,
+                  borderColor: styles.tooltip.borderColor,
+                  color: styles.tooltip.textColor,
+                  borderRadius: '0.375rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height={hauteur}>
+            <LineChart
+              data={donneesTraitees}
+              margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={styles.chartGrid} />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fill: modeSombre ? '#e2e8f0' : '#334155' }}
+              />
+              <YAxis 
+                tick={{ fill: modeSombre ? '#e2e8f0' : '#334155' }}
+              />
+              <Tooltip
+                formatter={formatTooltip}
+                contentStyle={{ 
+                  backgroundColor: styles.tooltip.backgroundColor,
+                  borderColor: styles.tooltip.borderColor,
+                  color: styles.tooltip.textColor,
+                  borderRadius: '0.375rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }}
+              />
+              {afficherLegende && (
+                <Legend 
+                  verticalAlign="top"
+                  align="right"
+                  wrapperStyle={{ 
+                    color: modeSombre ? '#e2e8f0' : '#334155',
+                    fontSize: '0.875rem',
+                    fontWeight: 500
+                  }}
+                />
+              )}
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke={COLORS[0]} 
+                strokeWidth={3}
+                dot={{ stroke: COLORS[0], strokeWidth: 2, fill: modeSombre ? '#1f2937' : '#ffffff', r: 5 }}
+                activeDot={{ r: 8 }}
+                animationDuration={animationActive ? 1500 : 0}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'area':
+        return (
+          <ResponsiveContainer width="100%" height={hauteur}>
+            <AreaChart
+              data={donneesTraitees}
+              margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={styles.chartGrid} />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fill: modeSombre ? '#e2e8f0' : '#334155' }}
+              />
+              <YAxis 
+                tick={{ fill: modeSombre ? '#e2e8f0' : '#334155' }}
+              />
+              <Tooltip
+                formatter={formatTooltip}
+                contentStyle={{ 
+                  backgroundColor: styles.tooltip.backgroundColor,
+                  borderColor: styles.tooltip.borderColor,
+                  color: styles.tooltip.textColor,
+                  borderRadius: '0.375rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }}
+              />
+              {afficherLegende && (
+                <Legend 
+                  verticalAlign="top"
+                  align="right"
+                  wrapperStyle={{ 
+                    color: modeSombre ? '#e2e8f0' : '#334155',
+                    fontSize: '0.875rem',
+                    fontWeight: 500
+                  }}
+                />
+              )}
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke={COLORS[0]} 
+                fill={COLORS[0]} 
+                fillOpacity={0.2}
+                animationDuration={animationActive ? 1500 : 0}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+      
+      default:
+        return null;
+    }
+  };
 
+  // Rendu final du composant
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={donnees}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={80}
-          paddingAngle={2}
-          dataKey="value"
-          animationDuration={1000}
-          animationBegin={200}
-        >
-          {donnees.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={1} stroke="rgba(255,255,255,0.2)" />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{ 
-            backgroundColor: 'rgba(30, 30, 30, 0.9)', 
-            border: 'none', 
-            borderRadius: '8px',
-            color: 'white'
-          }}
-          formatter={(value, name) => [value, name]}
-        />
-        <Legend 
-          verticalAlign="bottom" 
-          layout="horizontal"
-          formatter={(value, entry, index) => (
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>
-              {value}
-            </span>
-          )}
-        />
+    <div className={styles.container}>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className={styles.title}>{titre}</h2>
         
-        {/* Texte au centre du donut pour le taux de complétion */}
-        <text 
-          x="50%" 
-          y="50%" 
-          textAnchor="middle" 
-          dominantBaseline="middle"
-          className="text-xl font-bold"
-          fill="white"
-        >
-          {tauxCompletion}%
-        </text>
-      </PieChart>
-    </ResponsiveContainer>
+        {/* Sélecteur de type de graphique */}
+        <div className={`inline-flex rounded-md shadow-sm ${
+          modeSombre ? 'bg-gray-700' : 'bg-gray-100'
+        } p-1`}>
+          <button
+            onClick={() => setTypeGraphique('pie')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md ${
+              typeGraphique === 'pie' 
+                ? 'bg-blue-600 text-white' 
+                : `${modeSombre ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+            } transition-colors`}
+          >
+            Camembert
+          </button>
+          <button
+            onClick={() => setTypeGraphique('line')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md ${
+              typeGraphique === 'line' 
+                ? 'bg-blue-600 text-white' 
+                : `${modeSombre ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+            } transition-colors`}
+          >
+            Ligne
+          </button>
+          <button
+            onClick={() => setTypeGraphique('area')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md ${
+              typeGraphique === 'area' 
+                ? 'bg-blue-600 text-white' 
+                : `${modeSombre ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+            } transition-colors`}
+          >
+            Aire
+          </button>
+        </div>
+      </div>
+      
+      {/* Graphique */}
+      {renderGraph()}
+      
+      {/* Légende explicative */}
+      <div className={`mt-4 text-sm ${modeSombre ? 'text-gray-400' : 'text-gray-500'}`}>
+        <p className="italic">
+          {typeGraphique === 'pie' 
+            ? 'Cliquez sur un segment pour voir plus de détails.' 
+            : 'Survolez les points pour voir les valeurs exactes.'}
+        </p>
+      </div>
+    </div>
   );
 };
 
