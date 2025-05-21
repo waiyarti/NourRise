@@ -1,135 +1,87 @@
-/**
- * @file supabaseClient.js
- * @description Client Supabase optimisé avec gestion robuste des variables d'environnement
- * 
- * Caractéristiques:
- * - Détection intelligente des variables d'environnement
- * - Gestion d'erreurs avancée et messages explicites
- * - Support du mode développement vs production
- * - Fallback sécurisé pour éviter les crashs
- * - Options optimisées pour la performance et la résilience
- */
-
-import { createClient } from '@supabase/supabase-js';
-
-// Récupération sécurisée des variables d'environnement
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Configuration avancée pour optimiser les performances et la résilience
-const supabaseOptions = {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
+{
+  "name": "nourrise",
+  "version": "1.0.0",
+  "description": "Application NourRise: votre compagnon nutritionnel pour une alimentation équilibrée",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "analyze": "cross-env ANALYZE=true next build",
+    "prepare": "husky install",
+    "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "seed": "node scripts/seed.js",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
-  realtime: {
-    timeout: 30000, // Augmentation du timeout pour les connexions lentes
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0",
+    "axios": "^1.5.1",
+    "zod": "^3.22.4",
+    "react-query": "^3.39.3",
+    "framer-motion": "^10.16.4",
+    "date-fns": "^2.30.0",
+    "react-hook-form": "^7.47.0",
+    "tailwindcss": "^3.3.3",
+    "daisyui": "^3.9.2"
   },
-  global: {
-    headers: {
-      'x-application-name': 'NourRise',
-    },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.22.15",
+    "@babel/preset-typescript": "^7.23.0",
+    "@next/bundle-analyzer": "^14.0.0",
+    "@storybook/addon-actions": "^7.4.6",
+    "@storybook/addon-essentials": "^7.4.6",
+    "@storybook/addon-links": "^7.4.6",
+    "@storybook/react": "^7.4.6",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.0.0",
+    "@types/node": "^20.8.6",
+    "@types/react": "^18.2.28",
+    "autoprefixer": "^10.4.16",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.51.0",
+    "eslint-config-next": "^14.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^15.0.0",
+    "postcss": "^8.4.31",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
   },
-};
-
-// Fonction pour créer un client mockup en cas d'erreur (mode dégradé)
-const createMockClient = () => {
-  console.warn('⚠️ Mode dégradé activé - Fonctionnalités Supabase limitées');
-  
-  return {
-    auth: {
-      signIn: () => Promise.resolve({ user: null, error: new Error('Mode hors-ligne') }),
-      signUp: () => Promise.resolve({ user: null, error: new Error('Mode hors-ligne') }),
-      signOut: () => Promise.resolve({ error: null }),
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-      }),
-    }),
-    _isOfflineMode: true,
-  };
-};
-
-// Gestion intelligente de l'initialisation de Supabase
-let supabase;
-
-try {
-  // Vérification sécurisée des variables d'environnement
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Message d'erreur détaillé pour faciliter le débogage
-    const errorMessage = !supabaseUrl && !supabaseAnonKey
-      ? "❌ Variables d'environnement Supabase manquantes (URL et ANON_KEY)"
-      : !supabaseUrl
-        ? "❌ Variable d'environnement NEXT_PUBLIC_SUPABASE_URL manquante"
-        : "❌ Variable d'environnement NEXT_PUBLIC_SUPABASE_ANON_KEY manquante";
-    
-    console.error(errorMessage);
-    console.error("💡 Assurez-vous que ces variables sont configurées dans votre fichier .env.local et dans les paramètres Vercel");
-    
-    // En développement, on peut afficher des instructions supplémentaires
-    if (process.env.NODE_ENV !== 'production') {
-      console.info("📋 Format attendu dans .env.local:");
-      console.info("NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co");
-      console.info("NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...votre-clé-ici");
-    }
-    
-    // En production, créer un client mockup pour éviter les crashs dans les pages
-    if (typeof window !== 'undefined') {
-      supabase = createMockClient();
-    } else {
-      // En mode SSR/build sans les variables, on doit lever une erreur pour alerter
-      throw new Error(errorMessage);
-    }
-  } else {
-    // Initialisation normale du client Supabase avec toutes les options
-    supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseOptions);
-    
-    // Log de succès (uniquement en développement)
-    if (process.env.NODE_ENV !== 'production') {
-      console.info("✅ Client Supabase initialisé avec succès");
-    }
-  }
-} catch (error) {
-  console.error("❌ Erreur lors de l'initialisation de Supabase:", error.message);
-  
-  // En cas d'erreur côté client, utiliser le client mockup
-  if (typeof window !== 'undefined') {
-    supabase = createMockClient();
-  } else {
-    // En mode SSR, propager l'erreur pour alerter
-    throw error;
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   }
 }
-
-/**
- * Vérifie si Supabase est correctement configuré
- * @returns {boolean} État de la configuration
- */
-export const isSupabaseConfigured = () => {
-  return !!supabaseUrl && !!supabaseAnonKey && !supabase._isOfflineMode;
-};
-
-/**
- * Vérifie si la connexion à Supabase est active
- * @returns {Promise<boolean>} État de la connexion
- */
-export const checkSupabaseConnection = async () => {
-  if (!isSupabaseConfigured()) return false;
-  
-  try {
-    // Test léger pour vérifier la connexion
-    const { error } = await supabase.from('health_check').select('count', { count: 'exact', head: true }).limit(1);
-    return !error;
-  } catch (error) {
-    console.warn("⚠️ Vérification de connexion Supabase échouée:", error.message);
-    return false;
-  }
-};
-
-// Exporter le client et les utilitaires
-export { supabase };
