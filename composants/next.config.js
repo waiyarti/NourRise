@@ -1,21 +1,58 @@
+/**
+ * @file next.config.js
+ * @description Configuration optimisée pour le déploiement sur Vercel
+ * @version 2.0.0
+ */
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Activation du mode strict React pour une meilleure qualité de code
   reactStrictMode: true,
+  
+  // Compilateur SWC pour des performances optimales
   swcMinify: true,
-  // Configuration pour l'optimisation des images
+  
+  // Optimisation des images
   images: {
-    domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com'],
+    domains: ['vercel.app', 'images.unsplash.com'],
     formats: ['image/avif', 'image/webp'],
   },
-  // Compression Gzip pour optimiser les performances
-  compress: true,
-  // Analyse des bundles en mode production
-  productionBrowserSourceMaps: false,
-  experimental: {
-    // Optimisations expérimentales
-    optimizeCss: true,
-    scrollRestoration: true,
+  
+  // Configuration pour Vercel
+  target: 'serverless',
+  
+  // Optimisations pour la production
+  compiler: {
+    // Suppression des console.log en production
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-}
+  
+  // Polyfills et transpilation
+  transpilePackages: ['recharts', 'canvas-confetti'],
+  
+  // Optimisations expérimentales
+  experimental: {
+    // Optimisation CSS
+    optimizeCss: true,
+    // Amélioration de l'expérience de navigation
+    scrollRestoration: true,
+    // Optimisation des imports pour les packages volumineux
+    optimizePackageImports: ['recharts'],
+  },
+  
+  // Configurations webpack personnalisées
+  webpack: (config, { isServer }) => {
+    // Résolution des problèmes de compatibilité côté client
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+    
+    return config;
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
