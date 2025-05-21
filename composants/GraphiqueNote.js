@@ -204,3 +204,369 @@ const GraphiqueNote = ({
   const handleWeekClick = useCallback((data) => {
     if (modeGroupeParSemaine) {
       setSelectedWeek(selectedWeek === data.date ? null : data.date);
+    }
+  }, [modeGroupeParSemaine, selectedWeek]);
+  
+  // Si aucune donnée, afficher un message
+  if (!journal || journal.length === 0) {
+    return (
+      <div className={`flex flex-col items-center justify-center h-full text-center p-8 rounded-lg ${
+        modeSombre ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'
+      }`}>
+        <svg className="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p className="text-lg font-medium">Aucune donnée disponible</p>
+        <p className="text-sm text-gray-400 mt-2 max-w-md">
+          Valide ta première journée pour commencer à voir tes notes!
+          Le graphique s'actualisera automatiquement.
+        </p>
+        <button 
+          className={`mt-4 px-4 py-2 rounded-lg ${
+            modeSombre ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'
+          } text-white transition-colors`}
+          onClick={() => window.scrollTo(0, 0)}
+        >
+          Valider une journée
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* En-tête avec statistiques */}
+      <div className={`flex flex-wrap justify-between items-center ${modeSombre ? 'text-gray-300' : 'text-gray-700'}`}>
+        <div className="mb-2">
+          <span className="text-sm font-medium opacity-80">
+            {modeGroupeParSemaine ? 'Vue par semaine' : 'Vue par jour'} • 
+            {stats.tendance === 'hausse' ? (
+              <span className="text-green-500"> En progression</span>
+            ) : stats.tendance === 'baisse' ? (
+              <span className="text-red-500"> En baisse</span>
+            ) : (
+              <span className="text-yellow-500"> Stable</span>
+            )}
+          </span>
+        </div>
+        
+        <div className="flex space-x-2 mb-2">
+          <div className={`px-3 py-1 rounded-lg text-center ${
+            modeSombre ? 'bg-gray-700' : 'bg-gray-100'
+          }`}>
+            <div className="text-xs opacity-70">Moyenne</div>
+            <div className={`font-bold ${
+              stats.moyenneNote >= 8 ? 'text-green-500' : 
+              stats.moyenneNote >= 5 ? 'text-amber-500' : 
+              'text-red-500'
+            }`}>{stats.moyenneNote}/10</div>
+          </div>
+          
+          <div className={`px-3 py-1 rounded-lg text-center ${
+            modeSombre ? 'bg-gray-700' : 'bg-gray-100'
+          }`}>
+            <div className="text-xs opacity-70">Taux moyen</div>
+            <div className="font-bold text-blue-500">{stats.moyenneTaux}%</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Graphique principal */}
+      <ResponsiveContainer width="100%" height={350}>
+        {comparerTaux ? (
+          <ComposedChart
+            data={donnees}
+            margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+            onMouseEnter={handleMouseOver}
+            onMouseLeave={handleMouseLeave}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={modeSombre ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 
+              vertical={false}
+            />
+            
+            <XAxis 
+              dataKey="date" 
+              tick={{ 
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', 
+                fontSize: 12 
+              }}
+              axisLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+            />
+            
+            <YAxis 
+              yAxisId="left"
+              tick={{ 
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', 
+                fontSize: 12 
+              }}
+              domain={[0, 10]}
+              ticks={[0, 2, 4, 6, 8, 10]}
+              axisLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+              tickLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+              label={{ 
+                value: 'Note /10', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { 
+                  textAnchor: 'middle',
+                  fill: modeSombre ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+                  fontSize: 10
+                }
+              }}
+            />
+            
+            <YAxis 
+              yAxisId="right"
+              orientation="right"
+              tick={{ 
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', 
+                fontSize: 12 
+              }}
+              domain={[0, 100]}
+              axisLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+              tickLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+              label={{ 
+                value: 'Taux %', 
+                angle: 90, 
+                position: 'insideRight',
+                style: { 
+                  textAnchor: 'middle',
+                  fill: modeSombre ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+                  fontSize: 10
+                }
+              }}
+            />
+            
+            <Tooltip content={customTooltip} />
+            
+            <Legend 
+              verticalAlign="top"
+              height={36}
+              formatter={(value) => (
+                <span style={{ 
+                  color: modeSombre ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)', 
+                  fontSize: '14px' 
+                }}>
+                  {value === 'note' ? 'Note /10' : 'Taux de réussite %'}
+                </span>
+              )}
+            />
+            
+            {/* Ligne d'objectif */}
+            {afficherObjectif && (
+              <ReferenceLine 
+                y={objectifNote} 
+                yAxisId="left"
+                stroke={modeSombre ? "rgba(130, 190, 255, 0.5)" : "rgba(59, 130, 246, 0.5)"} 
+                strokeDasharray="3 3"
+                label={{ 
+                  value: `Objectif: ${objectifNote}`, 
+                  position: 'insideBottomLeft',
+                  fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+                  fontSize: 10
+                }}
+              />
+            )}
+            
+            {/* Ligne moyenne */}
+            <ReferenceLine 
+              y={stats.moyenneNote} 
+              yAxisId="left"
+              stroke={modeSombre ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)"} 
+              strokeDasharray="3 3"
+              label={{ 
+                value: 'Moy.', 
+                position: 'insideBottomRight',
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+                fontSize: 10
+              }}
+            />
+            
+            {/* Barres pour notes */}
+            <Bar 
+              yAxisId="left"
+              dataKey="note" 
+              fill="#8884d8"
+              onClick={handleWeekClick}
+              radius={[4, 4, 0, 0]}
+              animationDuration={1500}
+            >
+              {donnees.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`}
+                  fill={getBarColor(entry.note)}
+                  fillOpacity={selectedWeek === entry.date ? 1 : 0.8}
+                  stroke={selectedWeek === entry.date ? '#fff' : 'none'}
+                  strokeWidth={selectedWeek === entry.date ? 2 : 0}
+                  cursor={modeGroupeParSemaine ? 'pointer' : 'default'}
+                />
+              ))}
+            </Bar>
+            
+            {/* Ligne pour taux de réussite */}
+            <Line 
+              yAxisId="right"
+              type="monotone" 
+              dataKey="taux" 
+              stroke="#3b82f6" 
+              strokeWidth={2}
+              dot={{ 
+                r: 4, 
+                stroke: '#3b82f6', 
+                strokeWidth: 1,
+                fill: modeSombre ? '#1f2937' : '#ffffff' 
+              }}
+            />
+          </ComposedChart>
+        ) : (
+          <BarChart
+            data={donnees}
+            margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+            onMouseEnter={handleMouseOver}
+            onMouseLeave={handleMouseLeave}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={modeSombre ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 
+              vertical={false}
+            />
+            
+            <XAxis 
+              dataKey="date" 
+              tick={{ 
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', 
+                fontSize: 12 
+              }}
+              axisLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+            />
+            
+            <YAxis 
+              domain={[0, 10]} 
+              tick={{ 
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', 
+                fontSize: 12 
+              }}
+              ticks={[0, 2, 4, 6, 8, 10]}
+              axisLine={{ stroke: modeSombre ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}
+            />
+            
+            <Tooltip content={customTooltip} />
+            
+            {/* Ligne d'objectif */}
+            {afficherObjectif && (
+              <ReferenceLine 
+                y={objectifNote} 
+                stroke={modeSombre ? "rgba(130, 190, 255, 0.5)" : "rgba(59, 130, 246, 0.5)"} 
+                strokeDasharray="3 3"
+                label={{ 
+                  value: `Objectif: ${objectifNote}`, 
+                  position: 'insideBottomLeft',
+                  fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+                  fontSize: 10
+                }}
+              />
+            )}
+            
+            {/* Ligne moyenne */}
+            <ReferenceLine 
+              y={stats.moyenneNote} 
+              stroke={modeSombre ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)"} 
+              strokeDasharray="3 3"
+              label={{ 
+                value: 'Moy.', 
+                position: 'insideBottomRight',
+                fill: modeSombre ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+                fontSize: 10
+              }}
+            />
+            
+            <Bar 
+              dataKey="note" 
+              fill="#8884d8"
+              radius={[4, 4, 0, 0]}
+              animationDuration={1500}
+              onClick={handleWeekClick}
+            >
+              {donnees.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`}
+                  fill={getBarColor(entry.note)}
+                  fillOpacity={selectedWeek === entry.date ? 1 : 0.8}
+                  stroke={selectedWeek === entry.date ? '#fff' : 'none'}
+                  strokeWidth={selectedWeek === entry.date ? 2 : 0}
+                  cursor={modeGroupeParSemaine ? 'pointer' : 'default'}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        )}
+      </ResponsiveContainer>
+      
+      {/* Options interactives */}
+      <div className="flex flex-wrap justify-between items-center">
+        <div className="flex space-x-2 mb-2">
+          <button
+            onClick={() => setShowWeeklyAverage(!showWeeklyAverage)}
+            className={`px-3 py-1 text-xs rounded-full transition ${
+              showWeeklyAverage 
+                ? `${modeSombre ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white'}`
+                : `${modeSombre ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`
+            }`}
+          >
+            {showWeeklyAverage ? 'Masquer moyennes' : 'Afficher moyennes'}
+          </button>
+          
+          <button
+            onClick={() => window.location.href = `?modeGroupeParSemaine=${!modeGroupeParSemaine}`}
+            className={`px-3 py-1 text-xs rounded-full transition ${
+              modeGroupeParSemaine 
+                ? `${modeSombre ? 'bg-green-700 text-white' : 'bg-green-600 text-white'}`
+                : `${modeSombre ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`
+            }`}
+          >
+            {modeGroupeParSemaine ? 'Vue par jour' : 'Vue par semaine'}
+          </button>
+        </div>
+        
+        <div className="text-xs opacity-75">
+          {hoverData ? 
+            `Détails pour ${hoverData.date}` : 
+            selectedWeek ? 
+            `Semaine sélectionnée: ${selectedWeek}` : 
+            `${donnees.length} entrées affichées`
+          }
+        </div>
+      </div>
+      
+      {/* Section des meilleurs jours si disponible */}
+      {stats.joursMeilleurNote.length > 0 && (
+        <div className={`mt-4 p-3 rounded-lg ${
+          modeSombre ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-100'
+        }`}>
+          <p className="text-sm font-medium mb-1">Meilleure(s) note(s):</p>
+          <div className="flex flex-wrap gap-2">
+            {stats.joursMeilleurNote.slice(0, 3).map((jour, idx) => (
+              <span 
+                key={idx} 
+                className={`text-xs px-2 py-1 rounded-full ${
+                  modeSombre ? 'bg-green-900 text-green-100' : 'bg-green-100 text-green-800'
+                }`}
+              >
+                {jour}
+              </span>
+            ))}
+            {stats.joursMeilleurNote.length > 3 && (
+              <span className="text-xs opacity-75">
+                +{stats.joursMeilleurNote.length - 3} autre(s)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default GraphiqueNote;
